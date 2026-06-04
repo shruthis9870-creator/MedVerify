@@ -10,6 +10,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from app.models.message import IncomingMessage
 from app.models.response import BotResponse
 from app.services.orchestrator import orchestrator
+from app.services.report_service import report_service
 
 router = APIRouter()
 
@@ -43,6 +44,13 @@ async def whatsapp_webhook(request: Request):
             "profile_name": form.get("ProfileName"),
             "wa_id": form.get("WaId"),
         },
+        if media_urls:
+
+    report_service.create_report(
+        patient_id=from_number,
+        media_urls=media_urls,
+        metadata=incoming_message.metadata
+    )
     )
 
     try:

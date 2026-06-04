@@ -1,13 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import json
 from uuid import uuid4
+from datetime import datetime, timezone
 from typing import Any
+
+from app.services.orchestrator import redis_client
 
 
 class AlertService:
-    def __init__(self) -> None:
-        self._alerts: dict[str, dict[str, Any]] = {}
+
+    REDIS_KEY = "active_alerts"
 
     def create_alert(
         self,
@@ -15,10 +18,10 @@ class AlertService:
         severity: str,
         reason: str,
         payload: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        alert_id = str(uuid4())
+    ):
+
         alert = {
-            "alert_id": alert_id,
+            "alert_id": str(uuid4()),
             "user_id": user_id,
             "severity": severity,
             "reason": reason,
@@ -26,16 +29,48 @@ class AlertService:
             "status": "open",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        self._alerts[alert_id] = alert
+
+        redis_client.hset(
+            self.REDIS_KEY,
+            alert["alert_id"],
+            json.dumps(alert)
+        )
+
         return alert
 
-    def list_active_alerts(self) -> list[dict[str, Any]]:
-        return [alert for alert in self._alerts.values() if alert["status"] == "open"]
+    def list_active_alerts(self):
 
-    def acknowledge_alert(self, alert_id: str) -> dict[str, Any] | None:
-        alert = self._alerts.get(alert_id)
-        if alert:
-            alert["status"] = "acknowledged"
+        alerts = []
+
+        for raw in redis_client.hvals(self.REDIS_KEY):
+
+            alert = json.loads(raw)
+
+            if alert["status"] == "open":
+                alerts.append(alert)
+
+        return alerts
+
+    def acknowledge_alert(self, alert_id):
+
+        raw = redis_client.hget(
+            self.REDIS_KEY,
+            alert_id
+        )
+
+        if not raw:
+            return None
+
+        alert = json.loads(raw)
+
+        alert["status"] = "acknowledged"
+
+        redis_client.hset(
+            self.REDIS_KEY,
+            alert_id,
+            json.dumps(alert)
+        )
+
         return alert
 
 

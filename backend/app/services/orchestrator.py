@@ -15,7 +15,9 @@ redis_client = Redis(
     decode_responses=True,
 )
 
-session_manager = SessionManager(redis_client=None)
+session_manager = SessionManager(
+    redis_client=redis_client
+)
 flow_registry = FlowRegistry()
 
 

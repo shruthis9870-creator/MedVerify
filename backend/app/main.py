@@ -6,8 +6,10 @@ from app.api.health import router as health_router
 from app.api.whatsapp import router as whatsapp_router
 from app.core.config import settings
 from app.services.orchestrator import session_manager
+from app.api.reports import router as reports_router
 
 app = FastAPI(title=settings.app_name)
+app.include_router(reports_router)
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.services.orchestrator import redis_client
+from app.services.redis_service import redis_client
 from app.api.alerts import router as alerts_router
 from app.api.health import router as health_router
 from app.api.whatsapp import router as whatsapp_router

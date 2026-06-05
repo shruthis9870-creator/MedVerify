@@ -1,6 +1,6 @@
 import json
 
-from app.services.orchestrator import redis_client
+from app.services.redis_service import redis_client
 
 
 class ReportService:

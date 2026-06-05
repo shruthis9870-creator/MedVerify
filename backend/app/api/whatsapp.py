@@ -1,8 +1,3 @@
-from fastapi import APIRouter
-from fastapi import Form
-from fastapi.responses import Response
-from twilio.twiml.messaging_response import MessagingResponse
-
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from twilio.twiml.messaging_response import MessagingResponse
@@ -27,7 +22,8 @@ async def whatsapp_webhook(request: Request):
     except ValueError:
         num_media = 0
 
-    media_urls: list[str] = []
+    media_urls = []
+
     for i in range(num_media):
         media_url = form.get(f"MediaUrl{i}")
         if media_url:
@@ -44,19 +40,22 @@ async def whatsapp_webhook(request: Request):
             "profile_name": form.get("ProfileName"),
             "wa_id": form.get("WaId"),
         },
-        if media_urls:
+    )
 
-    report_service.create_report(
-        patient_id=from_number,
-        media_urls=media_urls,
-        metadata=incoming_message.metadata
-    )
-    )
+    # Store uploaded reports
+    if media_urls:
+        report_service.create_report(
+            patient_id=from_number,
+            media_urls=media_urls,
+            metadata=incoming_message.metadata,
+        )
 
     try:
         bot_response = orchestrator.handle_message(incoming_message)
+
     except Exception as exc:
         print("WHATSAPP WEBHOOK ERROR:", exc)
+
         bot_response = BotResponse(
             response_type="text",
             message="Something went wrong on our side. Please try again in a moment.",

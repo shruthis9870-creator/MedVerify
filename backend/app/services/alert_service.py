@@ -4,8 +4,7 @@ import json
 from uuid import uuid4
 from datetime import datetime, timezone
 from typing import Any
-
-from app.services.orchestrator import redis_client
+from app.services.redis_service import redis_client
 
 
 class AlertService:

@@ -8,13 +8,7 @@ from app.models.response import BotResponse
 from app.services.flow_registry import FlowRegistry
 from app.services.session_manager import SessionManager
 
-
-redis_client = Redis(
-    host=settings.redis_host,
-    port=settings.redis_port,
-    decode_responses=True,
-)
-
+from app.services.redis_service import redis_client
 session_manager = SessionManager(
     redis_client=redis_client
 )

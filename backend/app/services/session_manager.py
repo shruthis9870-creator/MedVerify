@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from redis import Redis
+from redis.exceptions import RedisError
 
 from app.models.session import SessionState
 
@@ -20,8 +21,9 @@ class SessionManager:
                 raw = self.redis.get(self._key(user_id))
                 if raw:
                     return SessionState.model_validate_json(raw)
-            except Exception:
-                pass
+            except RedisError as exc:
+                if not getattr(self.redis, "is_ephemeral_store", False):
+                    raise RuntimeError("Unable to read session from Redis") from exc
 
         if user_id in self._memory_sessions:
             return self._memory_sessions[user_id]
@@ -41,8 +43,9 @@ class SessionManager:
                     session.model_dump_json(),
                     ex=self.ttl_seconds,
                 )
-            except Exception:
-                pass
+            except RedisError as exc:
+                if not getattr(self.redis, "is_ephemeral_store", False):
+                    raise RuntimeError("Unable to save session to Redis") from exc
 
     def delete_session(self, user_id: str) -> None:
         self._memory_sessions.pop(user_id, None)
@@ -50,5 +53,6 @@ class SessionManager:
         if self.redis is not None:
             try:
                 self.redis.delete(self._key(user_id))
-            except Exception:
-                pass
+            except RedisError as exc:
+                if not getattr(self.redis, "is_ephemeral_store", False):
+                    raise RuntimeError("Unable to delete session from Redis") from exc

@@ -1,0 +1,805 @@
+export const patients = [
+  {
+    id: "P1001",
+    name: "Ramesh Kumar",
+    age: 52,
+    disease: "Cardiac Emergency",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Heart",
+    symptoms: ["Chest Pain", "Sweating", "Dizziness"],
+    reports: ["Blood_Report.pdf", "ECG_Scan.jpg", "Cardiac_Summary.pdf"],
+    aiSuggestions: ["Immediate ECG recommended", "Shift patient to ICU", "Cardiology consultation required"],
+    history: [
+      "10:30 AM - Patient reported chest pain",
+      "10:45 AM - AI marked high urgency",
+      "11:00 AM - Blood report uploaded",
+      "11:20 AM - ECG requested",
+      "11:40 AM - Specialist referral initiated",
+      "12:00 PM - ICU transfer completed",
+      "12:15 PM - AI risk alert escalated",
+    ],
+  },
+  {
+    id: "P1002",
+    name: "Sunita Devi",
+    age: 45,
+    disease: "Viral Fever",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Respiratory",
+    symptoms: ["Fever", "Body Ache", "Weakness"],
+    reports: ["CBC_Report.pdf", "Prescription.png"],
+    aiSuggestions: ["Monitor temperature every 2 hours", "Hydration recommended", "CBC review required"],
+    history: [
+      "09:15 AM - Fever reported",
+      "09:30 AM - AI marked moderate risk",
+      "10:00 AM - CBC uploaded",
+      "10:20 AM - Specialist consult requested",
+    ],
+  },
+  {
+    id: "P1003",
+    name: "Amit Verma",
+    age: 34,
+    disease: "Migraine",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Brain",
+    symptoms: ["Headache", "Nausea"],
+    reports: ["Brain_Scan.jpg"],
+    aiSuggestions: ["Neurology review suggested", "MRI scan if symptoms worsen"],
+    history: ["08:00 AM - Headache complaint", "08:20 AM - Neurology review suggested"],
+  },
+  {
+    id: "P1004",
+    name: "Priya Shah",
+    age: 60,
+    disease: "Pneumonia",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Respiratory",
+    symptoms: ["Shortness of breath", "Cough", "Fever"],
+    reports: ["Chest_Xray.png", "Infection_Profile.pdf"],
+    aiSuggestions: ["Oxygen support required", "IV antibiotics recommended"],
+    history: ["07:10 AM - Respiratory distress noted", "07:30 AM - X-ray ordered", "08:05 AM - IV antibiotics started"],
+  },
+  {
+    id: "P1005",
+    name: "Nikhil Patel",
+    age: 49,
+    disease: "Sepsis",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Multi",
+    symptoms: ["Fever", "Rapid heart rate", "Low blood pressure"],
+    reports: ["Sepsis_Protocol.pdf"],
+    aiSuggestions: ["Immediate fluid resuscitation", "Broad-spectrum antibiotics"],
+    history: ["06:50 AM - Sepsis alarm raised", "07:05 AM - Antibiotics administered", "07:25 AM - Vital signs stabilized"],
+  },
+  {
+    id: "P1006",
+    name: "Deepa Singh",
+    age: 57,
+    disease: "Stroke",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Brain",
+    symptoms: ["Facial droop", "Slurred speech", "Weakness"],
+    reports: ["CT_Scan.jpg", "Neurology_Notes.pdf"],
+    aiSuggestions: ["Neuro consult needed", "Thrombolytic therapy assessment"],
+    history: [
+      "05:40 AM - Stroke protocol activated",
+      "06:00 AM - CT scan completed",
+      "06:20 AM - Treatment decision pending",
+      "06:35 AM - Neurology consult requested",
+      "06:50 AM - Report uploaded to critical review",
+    ],
+  },
+  {
+    id: "P1007",
+    name: "Anjali Rao",
+    age: 38,
+    disease: "Kidney Injury",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Kidney",
+    symptoms: ["Reduced urine output", "Fatigue", "Swelling"],
+    reports: ["Renal_Function.pdf"],
+    aiSuggestions: ["Nephrology consult", "Review fluid balance"],
+    history: ["08:45 AM - Creatinine spike detected", "09:00 AM - Fluid charts updated"],
+  },
+  {
+    id: "P1008",
+    name: "Mohit Gupta",
+    age: 66,
+    disease: "COPD Exacerbation",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Lungs",
+    symptoms: ["Wheeze", "Productive cough", "Breathlessness"],
+    reports: ["Spirometry_Report.pdf"],
+    aiSuggestions: ["Bronchodilator therapy", "Pulmonary follow-up"],
+    history: ["09:20 AM - Oxygen requirement increased", "09:45 AM - Nebulizer therapy started"],
+  },
+  {
+    id: "P1009",
+    name: "Shreya Nair",
+    age: 29,
+    disease: "Appendicitis",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Digestive",
+    symptoms: ["Abdominal pain", "Nausea", "Fever"],
+    reports: ["Abdominal_Ultrasound.png"],
+    aiSuggestions: ["Surgical consult", "Prepare for OR"],
+    history: ["06:10 AM - Pain score worsened", "06:30 AM - Ultrasound completed"],
+  },
+  {
+    id: "P1010",
+    name: "Rahul Mehta",
+    age: 54,
+    disease: "Diabetic Ketoacidosis",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Metabolic",
+    symptoms: ["Nausea", "Confusion", "Dehydration"],
+    reports: ["Glucose_Log.pdf", "Electrolyte_Report.pdf"],
+    aiSuggestions: ["IV insulin", "Electrolyte replacement"],
+    history: [
+      "04:50 AM - DKA alert triggered",
+      "05:15 AM - Insulin drip started",
+      "05:30 AM - Glucose report uploaded",
+      "05:45 AM - Specialist referral initiated",
+    ],
+  },
+  {
+    id: "P1011",
+    name: "Sona Kapoor",
+    age: 31,
+    disease: "Preterm Labor",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Reproductive",
+    symptoms: ["Cramping", "Back pain", "Contractions"],
+    reports: ["Fetal_Monitor.pdf"],
+    aiSuggestions: ["Obstetric review", "Continuous fetal monitoring"],
+    history: ["10:15 AM - Contraction interval shortened", "10:40 AM - Monitoring initiated"],
+  },
+  {
+    id: "P1012",
+    name: "Arjun Desai",
+    age: 47,
+    disease: "Hypertensive Crisis",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Cardiovascular",
+    symptoms: ["Headache", "Blurred vision", "Chest tightness"],
+    reports: ["BP_Log.pdf"],
+    aiSuggestions: ["IV antihypertensive therapy", "Cardiology consult"],
+    history: ["11:30 AM - BP spike recorded", "11:45 AM - Medication adjusted"],
+  },
+  {
+    id: "P1013",
+    name: "Meera Joshi",
+    age: 69,
+    disease: "Pneumonia",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Respiratory",
+    symptoms: ["Cough", "Fever", "Chest pain"],
+    reports: [],
+    aiSuggestions: ["Antibiotic course", "Respiratory therapy"],
+    history: ["07:05 AM - Oxygen saturation checked", "07:30 AM - Antibiotics administered"],
+  },
+  {
+    id: "P1014",
+    name: "Vikram Singh",
+    age: 40,
+    disease: "Gallstones",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Digestive",
+    symptoms: ["Right upper quadrant pain", "Nausea"],
+    reports: [],
+    aiSuggestions: ["Surgical consult if pain persists"],
+    history: ["05:50 AM - Pain evaluated", "06:10 AM - Imaging ordered"],
+  },
+  {
+    id: "P1015",
+    name: "Neha Jain",
+    age: 26,
+    disease: "Urinary Tract Infection",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Urinary",
+    symptoms: ["Burning urination", "Frequent urge", "Lower abdominal pain"],
+    reports: [],
+    aiSuggestions: ["Oral antibiotics", "Hydration guidance"],
+    history: ["08:00 AM - Urinalysis ordered", "08:30 AM - Positive findings confirmed"],
+  },
+  {
+    id: "P1016",
+    name: "Kabir Malhotra",
+    age: 58,
+    disease: "COPD",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Lungs",
+    symptoms: ["Shortness of breath", "Fatigue"],
+    reports: [],
+    aiSuggestions: ["Bronchodilator management", "Pulmonary rehab referral"],
+    history: ["09:10 AM - Respiratory assessment completed", "09:40 AM - Therapy adjusted"],
+  },
+  {
+    id: "P1017",
+    name: "Rina Chaudhary",
+    age: 63,
+    disease: "CHF",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Cardiac",
+    symptoms: ["Swelling", "Shortness of breath", "Fatigue"],
+    reports: [],
+    aiSuggestions: ["Diuretic optimization", "Cardiology follow-up"],
+    history: ["07:20 AM - Weight gain noted", "07:35 AM - Diuretic dose adjusted"],
+  },
+  {
+    id: "P1018",
+    name: "Sanjay Bhatia",
+    age: 54,
+    disease: "Pancreatitis",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Digestive",
+    symptoms: ["Abdominal pain", "Nausea", "Vomiting"],
+    reports: [],
+    aiSuggestions: ["NPO status", "Pain management"],
+    history: ["08:25 AM - Pain level recorded", "08:50 AM - IV fluids started"],
+  },
+  {
+    id: "P1019",
+    name: "Ayesha Khan",
+    age: 36,
+    disease: "Asthma Flare",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Lungs",
+    symptoms: ["Wheezing", "Cough", "Chest tightness"],
+    reports: [],
+    aiSuggestions: ["Inhaler review", "Pulmonary follow-up"],
+    history: ["09:05 AM - Peak flow checked", "09:30 AM - Inhaler therapy optimized"],
+  },
+  {
+    id: "P1020",
+    name: "Pradeep Nair",
+    age: 48,
+    disease: "Gastroenteritis",
+    severity: "Low",
+    admitted: "Yes",
+    organ: "Digestive",
+    symptoms: ["Diarrhea", "Vomiting", "Cramps"],
+    reports: [],
+    aiSuggestions: ["Hydration management", "Electrolyte replacement"],
+    history: ["06:20 AM - Fluid status assessed", "06:45 AM - Oral rehydration started"],
+  },
+  {
+    id: "P1021",
+    name: "Madhu Rao",
+    age: 71,
+    disease: "Hip Fracture",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Musculoskeletal",
+    symptoms: ["Pain", "Immobility"],
+    reports: [],
+    aiSuggestions: ["Orthopedic consult", "Pain control"],
+    history: ["07:10 AM - Fall noted", "07:35 AM - Imaging completed"],
+  },
+  {
+    id: "P1022",
+    name: "Kiran Sharma",
+    age: 53,
+    disease: "Thyroid Crisis",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Endocrine",
+    symptoms: ["Tremor", "Heat intolerance", "Palpitations"],
+    reports: [],
+    aiSuggestions: ["Endocrine consult", "Medication review"],
+    history: ["08:00 AM - Thyroid panel received", "08:20 AM - Medication adjusted"],
+  },
+  {
+    id: "P1023",
+    name: "Vanita Joshi",
+    age: 28,
+    disease: "Ectopic Pregnancy",
+    severity: "Critical",
+    admitted: "Yes",
+    organ: "Reproductive",
+    symptoms: ["Abdominal pain", "Vaginal bleeding"],
+    reports: [],
+    aiSuggestions: ["Gynecology emergency consult", "Immediate OR preparation"],
+    history: ["05:55 AM - Abnormal ultrasound detected", "06:10 AM - Surgical consult called"],
+  },
+  {
+    id: "P1024",
+    name: "Rohit Deshmukh",
+    age: 42,
+    disease: "Severe Asthma",
+    severity: "Moderate",
+    admitted: "Yes",
+    organ: "Lungs",
+    symptoms: ["Wheezing", "Shortness of breath", "Chest tightness"],
+    reports: [],
+    aiSuggestions: ["IV steroids", "Pulmonary follow-up"],
+    history: ["07:15 AM - Peak flow dropped", "07:35 AM - Steroid therapy initiated"],
+  },
+];
+
+export const stats = [
+  { title: "Active Patients", value: 24 },
+  { title: "Critical Cases", value: 5 },
+  { title: "ICU Occupancy", value: "82%" },
+  { title: "Emergency Alerts", value: 7 },
+  { title: "Pending Reviews", value: 12 },
+  { title: "Admitted Patients", value: 24 },
+  { title: "Discharged Patients", value: 8 },
+  { title: "AI Clinical Alerts", value: 9 },
+];
+
+export const chartData = [
+  { day: "Mon", patients: 12 },
+  { day: "Tue", patients: 18 },
+  { day: "Wed", patients: 10 },
+  { day: "Thu", patients: 22 },
+  { day: "Fri", patients: 16 },
+  { day: "Sat", patients: 28 },
+];
+
+export const alerts = patients
+  .filter((patient) => patient.severity === "Critical")
+  .map((patient) => ({
+    patientId: patient.id,
+    patient: patient.name,
+    severity: patient.severity,
+    issue: patient.symptoms.join(", "),
+    action: patient.aiSuggestions[0] || "Immediate clinical review",
+  }));
+
+export const notifications = [
+  "New blood report uploaded",
+  "Emergency escalation requested",
+  "Nurse assistance required",
+  "Specialist response received",
+  "Lab result available",
+  "New medication order placed",
+  "Patient transfer initiated",
+  "Discharge planning started",
+];
+
+export const timelineEvents = [
+  {
+    id: 101,
+    patientId: "P1001",
+    patientName: "Ramesh Kumar",
+    title: "ECG review completed",
+    message: "Cardiology team confirmed urgent rhythm review and escalated to ICU oversight.",
+    timestamp: "06:42 AM",
+    severity: "Critical",
+    unread: true,
+  },
+  {
+    id: 102,
+    patientId: "P1002",
+    patientName: "Sunita Devi",
+    title: "Temperature trend reviewed",
+    message: "Moderate fever trend stabilized after hydration and updated monitoring.",
+    timestamp: "08:15 AM",
+    severity: "Moderate",
+    unread: true,
+  },
+  {
+    id: 103,
+    patientId: "P1004",
+    patientName: "Priya Shah",
+    title: "Respiratory escalation logged",
+    message: "Ventilation support review completed and antibiotic cycle confirmed.",
+    timestamp: "09:30 AM",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 104,
+    patientId: "P1010",
+    patientName: "Rahul Mehta",
+    title: "DKA intervention update",
+    message: "Fluid balance and insulin infusion remained stable through the morning round.",
+    timestamp: "10:05 AM",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 105,
+    patientId: "P1003",
+    patientName: "Amit Verma",
+    title: "Neuro consult closed",
+    message: "Neurology follow-up recommended and migraine plan updated in the chart.",
+    timestamp: "11:40 AM",
+    severity: "Low",
+    unread: false,
+  },
+  {
+    id: 106,
+    patientId: "P1023",
+    patientName: "Vanita Joshi",
+    title: "Emergency OR handoff",
+    message: "Surgery coordination updated with OR readiness and blood bank confirmation.",
+    timestamp: "12:20 PM",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 107,
+    patientId: "P1006",
+    patientName: "Deepa Singh",
+    title: "Stroke care update",
+    message: "Neurology team confirmed the stroke protocol and updated the emergent transfer plan.",
+    timestamp: "01:05 PM",
+    severity: "Critical",
+    unread: true,
+  },
+  {
+    id: 108,
+    patientId: "P1015",
+    patientName: "Neha Jain",
+    title: "Document bundle uploaded",
+    message: "Urinalysis and follow-up notes were uploaded into the patient chart.",
+    timestamp: "02:10 PM",
+    severity: "Low",
+    unread: true,
+  },
+  {
+    id: 109,
+    patientId: "P1009",
+    patientName: "Shreya Nair",
+    title: "Surgical review submitted",
+    message: "Appendicitis review documented with conservative monitoring guidance.",
+    timestamp: "03:35 PM",
+    severity: "Moderate",
+    unread: false,
+  },
+  {
+    id: 110,
+    patientId: "P1012",
+    patientName: "Arjun Desai",
+    title: "Cardiac follow-up escalated",
+    message: "Hypertensive crisis follow-up moved into urgent cardiology review.",
+    timestamp: "04:55 PM",
+    severity: "Moderate",
+    unread: false,
+  },
+];
+
+export const patientNotifications = [
+  {
+    id: 1,
+    patientId: "P1001",
+    patientName: "Ramesh Kumar",
+    type: "critical_alert",
+    title: "Critical patient alert",
+    message: "Abnormal ECG detected. Immediate Cardiology review required.",
+    timestamp: "2 mins ago",
+    severity: "Critical",
+    unread: true,
+  },
+  {
+    id: 2,
+    patientId: "P1002",
+    patientName: "Sunita Devi",
+    type: "report_upload",
+    title: "Blood report uploaded",
+    message: "CBC report has been uploaded and is ready for review.",
+    timestamp: "15 mins ago",
+    severity: "Moderate",
+    unread: true,
+  },
+  {
+    id: 3,
+    patientId: "P1004",
+    patientName: "Priya Shah",
+    type: "escalation",
+    title: "Emergency escalation requested",
+    message: "Rapid respiratory decline detected. Patient moved to ICU.",
+    timestamp: "32 mins ago",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 4,
+    patientId: "P1010",
+    patientName: "Rahul Mehta",
+    type: "medication",
+    title: "New medication order placed",
+    message: "Insulin drip and IV fluids order confirmed for DKA management.",
+    timestamp: "45 mins ago",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 5,
+    patientId: "P1003",
+    patientName: "Amit Verma",
+    type: "specialist",
+    title: "Specialist response received",
+    message: "Neurology consult completed. Migraine management plan updated.",
+    timestamp: "1 hour ago",
+    severity: "Low",
+    unread: false,
+  },
+  {
+    id: 6,
+    patientId: "P1023",
+    patientName: "Vanita Joshi",
+    type: "critical_alert",
+    title: "Ectopic pregnancy emergency",
+    message: "OR preparation initiated. Emergency Gynecology surgery scheduled.",
+    timestamp: "1 hour ago",
+    severity: "Critical",
+    unread: false,
+  },
+  {
+    id: 7,
+    patientId: "P1015",
+    patientName: "Neha Jain",
+    type: "document_upload",
+    title: "Document bundle uploaded",
+    message: "Lab bundle and discharge notes were uploaded and staged for review.",
+    timestamp: "3 hours ago",
+    severity: "Low",
+    unread: true,
+  },
+  {
+    id: 8,
+    patientId: "P1006",
+    patientName: "Deepa Singh",
+    type: "emergency",
+    title: "Stroke emergency escalation",
+    message: "Neurology intervention escalated for acute stroke monitoring.",
+    timestamp: "5 hours ago",
+    severity: "Critical",
+    unread: true,
+  },
+];
+
+export function recordRecommendationDecision(patientId, action, reason = "") {
+  const patient = patients.find((entry) => entry.id === patientId);
+
+  if (!patient) return null;
+
+  const decision = action === "accept" ? "accepted" : "rejected";
+  const recordedAt = new Date().toLocaleString();
+  const decisionReason = reason.trim() || (decision === "accepted" ? "Accepted by clinician" : "Rejected by clinician");
+
+  patient.decision = decision;
+  patient.decisionReason = decisionReason;
+  patient.decisionRecordedAt = recordedAt;
+
+  const recommendation = patient.aiSuggestions?.[0] || "No AI recommendation available";
+
+  if (decision === "accepted") {
+    const existingApproved = approvedRecommendations.find((item) => item.patientId === patientId);
+
+    if (existingApproved) {
+      existingApproved.patientName = patient.name;
+      existingApproved.recommendation = recommendation;
+      existingApproved.reason = patient.disease + " flagged for clinical review.";
+      existingApproved.approvedDate = recordedAt;
+      existingApproved.outcome = decisionReason;
+    } else {
+      approvedRecommendations.unshift({
+        id: Date.now(),
+        patientId,
+        patientName: patient.name,
+        recommendation,
+        reason: patient.disease + " flagged for clinical review.",
+        approvedDate: recordedAt,
+        outcome: decisionReason,
+      });
+    }
+
+    const rejectedIndex = rejectedRecommendations.findIndex((item) => item.patientId === patientId);
+    if (rejectedIndex >= 0) {
+      rejectedRecommendations.splice(rejectedIndex, 1);
+    }
+  } else {
+    const existingRejected = rejectedRecommendations.find((item) => item.patientId === patientId);
+
+    if (existingRejected) {
+      existingRejected.patientName = patient.name;
+      existingRejected.recommendation = recommendation;
+      existingRejected.reason = patient.disease + " flagged for clinical review.";
+      existingRejected.rejectedDate = recordedAt;
+      existingRejected.rejectionReason = decisionReason;
+    } else {
+      rejectedRecommendations.unshift({
+        id: Date.now(),
+        patientId,
+        patientName: patient.name,
+        recommendation,
+        reason: patient.disease + " flagged for clinical review.",
+        rejectedDate: recordedAt,
+        rejectionReason: decisionReason,
+      });
+    }
+
+    const approvedIndex = approvedRecommendations.findIndex((item) => item.patientId === patientId);
+    if (approvedIndex >= 0) {
+      approvedRecommendations.splice(approvedIndex, 1);
+    }
+  }
+
+  return {
+    action: decision,
+    reason: decisionReason,
+    recordedAt,
+  };
+}
+
+export function getRecommendationDecision(patientId) {
+  const patient = patients.find((entry) => entry.id === patientId);
+
+  if (!patient || !patient.decision) return null;
+
+  return {
+    action: patient.decision,
+    reason: patient.decisionReason,
+    recordedAt: patient.decisionRecordedAt,
+  };
+}
+
+export const approvedRecommendations = [
+  {
+    id: 1,
+    patientId: "P1001",
+    patientName: "Ramesh Kumar",
+    recommendation: "Immediate ECG and Cardiology consultation required.",
+    reason: "Chest pain + sweating + dizziness indicate possible cardiac emergency.",
+    approvedDate: "2 hours ago",
+    outcome: "Patient transferred to ICU, Cardiology consult scheduled",
+  },
+  {
+    id: 2,
+    patientId: "P1004",
+    patientName: "Priya Shah",
+    recommendation: "Oxygen support and IV antibiotics required immediately.",
+    reason: "Rapid respiratory decline with high fever and suspected pneumonia.",
+    approvedDate: "3 hours ago",
+    outcome: "Patient on oxygen support, Broad-spectrum antibiotics started",
+  },
+  {
+    id: 3,
+    patientId: "P1010",
+    patientName: "Rahul Mehta",
+    recommendation: "IV insulin therapy and electrolyte management critical.",
+    reason: "Diabetic Ketoacidosis with confusion and dehydration detected.",
+    approvedDate: "5 hours ago",
+    outcome: "Insulin drip initiated, Electrolyte replacement in progress",
+  },
+];
+
+export const rejectedRecommendations = [
+  {
+    id: 1,
+    patientId: "P1002",
+    patientName: "Sunita Devi",
+    recommendation: "Immediate transfer to ICU recommended.",
+    reason: "AI flagged elevated inflammatory markers.",
+    rejectedDate: "4 hours ago",
+    rejectionReason: "Patient responding well to current treatment. ICU not necessary at this time.",
+  },
+  {
+    id: 2,
+    patientId: "P1009",
+    patientName: "Shreya Nair",
+    recommendation: "Immediate surgical intervention for appendicitis.",
+    reason: "Severe abdominal pain and imaging confirms appendicitis.",
+    rejectedDate: "6 hours ago",
+    rejectionReason: "Patient still under observation. Conservative approach being monitored before surgical decision.",
+  },
+];
+
+export const testRequests = [
+  {
+    id: 1,
+    patientId: "P1001",
+    patientName: "Ramesh Kumar",
+    tests: ["Troponin Level", "BNP", "Echocardiogram", "Stress Test"],
+    reason: "Cardiac assessment for suspected myocardial infarction and cardiac function evaluation.",
+    requestedDate: "2 hours ago",
+    status: "In Progress",
+  },
+  {
+    id: 2,
+    patientId: "P1004",
+    patientName: "Priya Shah",
+    tests: ["Chest X-ray", "Blood Culture", "Procalcitonin", "ABG"],
+    reason: "Pneumonia diagnosis confirmation and bacterial infection identification for appropriate antibiotic selection.",
+    requestedDate: "3 hours ago",
+    status: "Completed",
+  },
+  {
+    id: 3,
+    patientId: "P1002",
+    patientName: "Sunita Devi",
+    tests: ["CBC", "Viral Panel", "Liver Function Tests", "Kidney Function Tests"],
+    reason: "Viral fever investigation and assessment of organ involvement from systemic infection.",
+    requestedDate: "1 hour ago",
+    status: "Pending",
+  },
+  {
+    id: 4,
+    patientId: "P1010",
+    patientName: "Rahul Mehta",
+    tests: ["Blood Glucose", "Electrolytes (Na, K, Cl)", "Arterial Blood Gas", "Ketone Bodies"],
+    reason: "DKA management - monitoring glucose levels, electrolyte balance, and acid-base status.",
+    requestedDate: "5 hours ago",
+    status: "In Progress",
+  },
+  {
+    id: 5,
+    patientId: "P1003",
+    patientName: "Amit Verma",
+    tests: ["MRI Brain", "Migraine Trigger Panel"],
+    reason: "Neuroimaging to rule out secondary causes of recurrent migraines and identify underlying pathology.",
+    requestedDate: "8 hours ago",
+    status: "Scheduled",
+  },
+];
+
+export const hospitalRecommendations = [
+  {
+    id: 1,
+    patientId: "P1001",
+    patientName: "Ramesh Kumar",
+    currentLocation: "General Ward",
+    recommendedFacility: "Tertiary Care Hospital - Cardiology ICU",
+    reason: "Requires advanced cardiac life support and interventional cardiology capabilities not available at current facility.",
+    urgency: "Critical",
+    recommendedDate: "2 hours ago",
+    status: "Approved",
+  },
+  {
+    id: 2,
+    patientId: "P1004",
+    patientName: "Priya Shah",
+    currentLocation: "Medical Ward",
+    recommendedFacility: "Respiratory Care Center - ICU",
+    reason: "Requires mechanical ventilation support and specialized respiratory care for critical pneumonia management.",
+    urgency: "Critical",
+    recommendedDate: "3 hours ago",
+    status: "In Transit",
+  },
+  {
+    id: 3,
+    patientId: "P1023",
+    patientName: "Vanita Joshi",
+    currentLocation: "Emergency Department",
+    recommendedFacility: "Tertiary Care Hospital - Gynecology OR",
+    reason: "Emergency surgical facility required for ectopic pregnancy management with access to blood bank and ICU.",
+    urgency: "Critical",
+    recommendedDate: "1 hour ago",
+    status: "Approved",
+  },
+  {
+    id: 4,
+    patientId: "P1010",
+    patientName: "Rahul Mehta",
+    currentLocation: "General Ward",
+    recommendedFacility: "Super Specialty Hospital - Endocrinology ICU",
+    reason: "DKA management requires continuous monitoring, insulin infusion capabilities, and endocrinology expertise.",
+    urgency: "Critical",
+    recommendedDate: "5 hours ago",
+    status: "Approved",
+  },
+];

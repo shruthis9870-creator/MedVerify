@@ -7,8 +7,30 @@ from app.services.alert_service import alert_service
 from app.utils.red_flags import contains_red_flags
 
 
+YES_WORDS = {"yes", "y", "yeah", "yep", "true", "1"}
+
+
 class SymptomFlow(BaseFlow):
     name = "symptoms"
+
+    def _create_emergency_alert(
+        self,
+        session: SessionState,
+        reason: str,
+        payload: dict,
+    ) -> None:
+        alert_service.create_alert(
+            user_id=session.user_id,
+            severity="HIGH",
+            reason=reason,
+            payload={
+                **payload,
+                "source": "whatsapp",
+                "flow": "symptoms",
+                "case_type": "emergency",
+                "requires_doctor_review": True,
+            },
+        )
 
     def handle(self, text: str, session: SessionState) -> BotResponse:
         data = self.flow_bucket(session)
@@ -18,14 +40,17 @@ class SymptomFlow(BaseFlow):
             data["main_symptom"] = text.strip()
 
             if contains_red_flags(normalized):
-                alert_service.create_alert(
-                    user_id=session.user_id,
-                    severity="HIGH",
+                self._create_emergency_alert(
+                    session=session,
                     reason="Red flag detected during symptom intake",
-                    payload={"main_symptom": text.strip()},
+                    payload={
+                        "main_symptom": text.strip(),
+                    },
                 )
+
                 session.flow = "emergency"
                 session.step = 0
+
                 return self.urgent(
                     "This may need urgent medical attention. Please go to the nearest emergency care now."
                 )
@@ -41,33 +66,42 @@ class SymptomFlow(BaseFlow):
         if session.step == 3:
             try:
                 age = int(text.strip())
+
                 if age <= 0 or age > 120:
                     raise ValueError
+
             except ValueError:
                 return self.ask("Please reply with your age as a number, like 24.")
 
             data["age"] = age
             session.step = 4
+
             return self.ask(
                 "Do you have any of these right now: chest pain, breathing trouble, fainting, seizure, heavy bleeding, very high fever, or confusion?"
             )
 
         if session.step == 4:
-            if normalized in {"yes", "y", "yeah", "yep", "true", "1"}:
-                alert_service.create_alert(
-                    user_id=session.user_id,
-                    severity="HIGH",
+            if normalized in YES_WORDS:
+                self._create_emergency_alert(
+                    session=session,
                     reason="User confirmed red flag during symptom intake",
-                    payload={"main_symptom": data.get("main_symptom", "")},
+                    payload={
+                        "main_symptom": data.get("main_symptom", ""),
+                        "duration": data.get("duration", ""),
+                        "age": data.get("age", ""),
+                    },
                 )
+
                 session.flow = "emergency"
                 session.step = 0
+
                 return self.urgent(
                     "This may be urgent. Please go to the nearest emergency care now."
                 )
 
             data["red_flags"] = False
             session.step = 5
+
             return self.ask(
                 "Any other symptoms like cough, fever, vomiting, weakness, headache, or body pain?"
             )

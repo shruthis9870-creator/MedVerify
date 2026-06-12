@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.pyo
+
+.venv/
+.env
+
+.redis-data/
+backend/uploads/
+
+healthcare-ai-ui/node_modules/
+healthcare-ai-ui/dist/
+healthcare-ai-ui/.git.local-backup/
+healthcare-ai-ui.zip
+
+node_modules/
+dist/

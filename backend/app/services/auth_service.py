@@ -25,9 +25,7 @@ class AuthService:
     OTP_PREFIX = "auth:otp:"
     TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60
     OTP_TTL_SECONDS = 5 * 60
-    ADMIN_USER_ID = "admin:shruthi"
-    ADMIN_EMAIL = "shruthi.s9870@gmail.com"
-    ADMIN_PASSWORD = "Shruthi.s@123"
+    MAX_ADMIN_ACCOUNTS = 6
 
     def _now(self) -> datetime:
         return datetime.now(timezone.utc)
@@ -78,28 +76,87 @@ class AuthService:
         if user.get("phone"):
             redis_client.hset(self.PHONE_INDEX_KEY, user["phone"], user["user_id"])
 
-    def _ensure_seed_admin(self) -> None:
-        normalized_email = self._normalize_email(self.ADMIN_EMAIL)
-        user_id = redis_client.hget(self.EMAIL_INDEX_KEY, normalized_email)
-        existing = self._get_user(user_id) if user_id else None
+    def _configured_admin_emails(self) -> set[str]:
+        emails = {
+            self._normalize_email(email)
+            for email in settings.admin_allowed_emails.replace(";", ",").split(",")
+            if self._normalize_email(email)
+        }
 
-        if existing:
-            return
+        if len(emails) > self.MAX_ADMIN_ACCOUNTS:
+            raise ValueError(f"Admin access is limited to {self.MAX_ADMIN_ACCOUNTS} configured accounts.")
 
-        self._save_user(
-            {
-                "user_id": self.ADMIN_USER_ID,
+        return emails
+
+    def _configured_admin_bootstrap_users(self) -> list[dict[str, str]]:
+        raw = settings.admin_bootstrap_users.strip()
+
+        if not raw:
+            return []
+
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError("ADMIN_BOOTSTRAP_USERS must be valid JSON.") from exc
+
+        if not isinstance(parsed, list):
+            raise ValueError("ADMIN_BOOTSTRAP_USERS must be a JSON list.")
+
+        if len(parsed) > self.MAX_ADMIN_ACCOUNTS:
+            raise ValueError(f"Admin access is limited to {self.MAX_ADMIN_ACCOUNTS} configured accounts.")
+
+        admins: list[dict[str, str]] = []
+
+        for item in parsed:
+            if not isinstance(item, dict):
+                raise ValueError("Each admin bootstrap entry must be an object.")
+
+            email = self._normalize_email(str(item.get("email", "")))
+            password = str(item.get("password", ""))
+            name = str(item.get("name") or email)
+
+            if not email or not password:
+                raise ValueError("Each admin bootstrap entry requires email and password.")
+
+            admins.append(
+                {
+                    "email": email,
+                    "password": password,
+                    "name": name.strip() or email,
+                }
+            )
+
+        return admins
+
+    def _ensure_configured_admins(self) -> None:
+        allowed_emails = self._configured_admin_emails()
+
+        for admin in self._configured_admin_bootstrap_users():
+            if admin["email"] not in allowed_emails:
+                raise ValueError("Bootstrap admin email is not in ADMIN_ALLOWED_EMAILS.")
+
+            user_id = redis_client.hget(self.EMAIL_INDEX_KEY, admin["email"])
+            existing = self._get_user(user_id) if user_id else None
+
+            if existing and existing.get("role") != "admin":
+                raise ValueError("Configured admin email already belongs to a non-admin account.")
+
+            user = {
+                **(existing or {}),
+                "user_id": existing.get("user_id") if existing else f"admin:{uuid4()}",
                 "role": "admin",
-                "name": "Shruthi Admin",
-                "email": normalized_email,
+                "name": admin["name"],
+                "email": admin["email"],
                 "phone": None,
-                "password_hash": self._hash_password(self.ADMIN_PASSWORD),
+                "password_hash": self._hash_password(admin["password"]),
                 "patient_id": None,
                 "specialty": "Administration",
+                "provisioned_by": "env",
                 "verified": True,
-                "created_at": self._now().isoformat(),
+                "created_at": existing.get("created_at") if existing else self._now().isoformat(),
             }
-        )
+
+            self._save_user(user)
 
     def _get_user(self, user_id: str) -> dict[str, Any] | None:
         return self._loads(redis_client.hget(self.USERS_KEY, user_id))
@@ -135,6 +192,9 @@ class AuthService:
         phone: str | None = None,
         specialty: str | None = None,
     ) -> dict[str, Any]:
+        if role == "admin":
+            raise ValueError("Admin accounts must be provisioned by configuration.")
+
         normalized_email = self._normalize_email(email)
         normalized_phone = self._normalize_phone(phone)
 
@@ -174,13 +234,21 @@ class AuthService:
         }
 
     def login(self, role: UserRole, email: str, password: str) -> dict[str, Any]:
-        self._ensure_seed_admin()
-
         normalized_email = self._normalize_email(email)
+
+        if role == "admin":
+            self._ensure_configured_admins()
+
+            if normalized_email not in self._configured_admin_emails():
+                raise ValueError("Invalid email or password for this portal.")
+
         user_id = redis_client.hget(self.EMAIL_INDEX_KEY, normalized_email)
         user = self._get_user(user_id) if user_id else None
 
         if not user or user.get("role") != role:
+            raise ValueError("Invalid email or password for this portal.")
+
+        if role == "admin" and user.get("provisioned_by") != "env":
             raise ValueError("Invalid email or password for this portal.")
 
         if not self._verify_password(password, user.get("password_hash", "")):
@@ -289,6 +357,16 @@ class AuthService:
     def me(self, token: str) -> dict[str, Any] | None:
         user_id = redis_client.get(f"{self.TOKEN_PREFIX}{token}")
         user = self._get_user(user_id) if user_id else None
+
+        if user and user.get("role") == "admin":
+            try:
+                allowed_emails = self._configured_admin_emails()
+            except ValueError:
+                return None
+
+            if user.get("email") not in allowed_emails or user.get("provisioned_by") != "env":
+                return None
+
         return self._public_user(user) if user else None
 
     def list_doctors(self) -> list[dict[str, Any]]:

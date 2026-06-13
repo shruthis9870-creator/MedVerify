@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { acknowledgeAlert, alertsToPatients, fetchActiveAlerts } from "../services/api";
 
-export function useLiveAlerts(pollInterval = 5000) {
+const LiveAlertsContext = createContext(null);
+
+function useLiveAlertsState(pollInterval = 5000) {
   const [alerts, setAlerts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,3 +61,18 @@ export function useLiveAlerts(pollInterval = 5000) {
   };
 }
 
+export function LiveAlertsProvider({ children, pollInterval = 5000 }) {
+  const value = useLiveAlertsState(pollInterval);
+
+  return createElement(LiveAlertsContext.Provider, { value }, children);
+}
+
+export function useLiveAlerts() {
+  const context = useContext(LiveAlertsContext);
+
+  if (!context) {
+    throw new Error("useLiveAlerts must be used inside LiveAlertsProvider.");
+  }
+
+  return context;
+}

@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const TOKEN_KEY = "medverify_token";
 
 const severityMap = {
   HIGH: "Critical",
@@ -178,10 +179,23 @@ export function alertsToPatients(alerts = []) {
   return Array.from(byPatient.values());
 }
 
+function getStoredToken() {
+  if (typeof localStorage === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
 async function request(path, options = {}) {
+  const { auth = true, headers = {}, ...fetchOptions } = options;
+  const token = auth ? getStoredToken() : null;
+  const requestHeaders = {
+    Accept: "application/json",
+    ...headers,
+    ...(token && !headers.Authorization ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { Accept: "application/json", ...(options.headers || {}) },
-    ...options,
+    headers: requestHeaders,
+    ...fetchOptions,
   });
 
   if (!response.ok) {
@@ -202,6 +216,7 @@ async function request(path, options = {}) {
 
 export async function signupUser(payload) {
   return request("/auth/signup", {
+    auth: false,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -210,6 +225,7 @@ export async function signupUser(payload) {
 
 export async function loginUser(payload) {
   return request("/auth/login", {
+    auth: false,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -218,6 +234,7 @@ export async function loginUser(payload) {
 
 export async function requestLoginOtp(payload) {
   return request("/auth/otp/request", {
+    auth: false,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -226,6 +243,7 @@ export async function requestLoginOtp(payload) {
 
 export async function verifyLoginOtp(payload) {
   return request("/auth/otp/verify", {
+    auth: false,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

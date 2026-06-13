@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
+from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
+from app.core.config import settings
 from app.models.message import IncomingMessage
 from app.models.response import BotResponse
 from app.services.alert_service import alert_service
@@ -11,9 +13,42 @@ from app.services.report_service import report_service
 router = APIRouter()
 
 
+def _verify_twilio_signature(request: Request, form_values: dict[str, str]) -> None:
+    if settings.allow_unsigned_twilio_webhook or not settings.twilio_validate_webhook_signature:
+        return
+
+    signature = request.headers.get("X-Twilio-Signature")
+
+    if not signature:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Missing Twilio webhook signature.",
+        )
+
+    if not settings.twilio_auth_token:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Twilio webhook signature verification is not configured.",
+        )
+
+    public_url = settings.twilio_webhook_public_url or str(request.url)
+    validator = RequestValidator(settings.twilio_auth_token)
+
+    if not validator.validate(public_url, form_values, signature):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid Twilio webhook signature.",
+        )
+
+
 @router.post("/webhook/whatsapp")
 async def whatsapp_webhook(request: Request):
     form = await request.form()
+    form_values = {
+        key: str(value)
+        for key, value in form.items()
+    }
+    _verify_twilio_signature(request, form_values)
 
     from_number = str(form.get("From", "")).strip()
     body = str(form.get("Body", "")).strip()

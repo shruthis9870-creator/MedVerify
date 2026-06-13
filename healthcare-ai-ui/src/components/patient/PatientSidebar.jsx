@@ -9,7 +9,8 @@ LogOut,
 ChevronLeft,
 } from "lucide-react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 
 export default function PatientSidebar({
@@ -17,6 +18,8 @@ collapsed,
 onToggle,
 }) {
 const location = useLocation();
+const navigate = useNavigate();
+const { logout } = useAuth();
 
 const menuItems = [
 {
@@ -209,8 +212,8 @@ className={`         ${collapsed ? "w-24" : "w-72"}
 
   <button
     onClick={() => {
-      localStorage.removeItem("role");
-      window.location.href = "/";
+      logout();
+      navigate("/", { replace: true });
     }}
     className="
       bg-red-500

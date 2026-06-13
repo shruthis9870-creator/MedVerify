@@ -95,23 +95,18 @@ def _redis_port_is_open() -> bool:
 def build_redis_client() -> Redis | FakeRedis:
     if settings.allow_in_memory_store:
         print(
-            "WARNING: using explicit in-memory store. "
-            "Set ALLOW_IN_MEMORY_STORE=false and run Redis for durable shared state."
+            "WARNING: using explicit in-memory store. Auth, sessions, alerts, "
+            "routing, and reports are not durable or shared across processes."
         )
         return FakeRedis()
 
     if not _redis_port_is_open():
-        message = (
-            "Redis is unavailable; using in-memory store for this process. "
-            "Install/start Redis for durable shared state, or set REQUIRE_REDIS=true "
-            "to fail startup when Redis is unavailable."
+        host, port = _redis_endpoint()
+        raise RuntimeError(
+            f"Redis is required but unavailable at {host}:{port}. "
+            "Start Redis before launching the backend. For isolated local tests only, "
+            "set ALLOW_IN_MEMORY_STORE=true to use non-durable per-process storage."
         )
-
-        if settings.require_redis:
-            raise RuntimeError(message)
-
-        print(f"WARNING: {message}")
-        return FakeRedis()
 
     return _build_real_redis_client()
 

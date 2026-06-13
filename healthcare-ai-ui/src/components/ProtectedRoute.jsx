@@ -6,10 +6,18 @@ export default function ProtectedRoute({
   children,
 }) {
 
-  const { role } = useAuth();
+  const { isAuthReady, isAuthenticated, role } = useAuth();
 
-  if (role !== allowedRole) {
-    return <Navigate to="/role" />;
+  if (!isAuthReady) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm font-semibold text-cyan-100">
+        Verifying session...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || role !== allowedRole) {
+    return <Navigate to="/role" replace />;
   }
 
   return children;

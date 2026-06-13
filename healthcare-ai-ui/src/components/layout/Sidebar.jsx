@@ -21,11 +21,14 @@ import {
   UserCog,
 } from "lucide-react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLiveAlerts } from "../../hooks/useLiveAlerts";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const { alerts, activePatients, reportPatients } = useLiveAlerts(7000);
   const pendingReports = reportPatients.length;
 
@@ -299,8 +302,8 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   <button
     onClick={() => {
-      localStorage.removeItem("role");
-      window.location.href = "/";
+      logout();
+      navigate("/", { replace: true });
     }}
     className="
       w-full

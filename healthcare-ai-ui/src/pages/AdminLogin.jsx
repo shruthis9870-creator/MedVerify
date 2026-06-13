@@ -6,8 +6,8 @@ import { useAuth } from "../context/AuthContext";
 export default function AdminLogin() {
   const navigate = useNavigate();
   const { loginWithCredentials } = useAuth();
-  const [email, setEmail] = useState("shruthi.s9870@gmail.com");
-  const [password, setPassword] = useState("Shruthi.s@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,6 +59,7 @@ export default function AdminLogin() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                placeholder="admin@hospital.com"
                 className="w-full bg-transparent text-white outline-none"
               />
             </div>
@@ -74,6 +75,7 @@ export default function AdminLogin() {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter password"
                 className="w-full bg-transparent text-white outline-none"
               />
             </div>

@@ -12,12 +12,13 @@ const CURRENT_USER_KEY = "medverify_user";
 const TOKEN_KEY = "medverify_token";
 
 export function AuthProvider({ children }) {
-  const [role, setRole] = useState(localStorage.getItem("role") || null);
+  const [role, setRole] = useState(null);
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || null);
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem(CURRENT_USER_KEY);
     return stored ? JSON.parse(stored) : null;
   });
+  const [isAuthReady, setIsAuthReady] = useState(!localStorage.getItem(TOKEN_KEY));
 
   const persistSession = (nextToken, nextUser) => {
     localStorage.setItem(TOKEN_KEY, nextToken);
@@ -28,10 +29,24 @@ export function AuthProvider({ children }) {
     setRole(nextUser.role);
   };
 
+  const clearSession = () => {
+    localStorage.removeItem("role");
+    localStorage.removeItem(CURRENT_USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    setRole(null);
+    setUser(null);
+    setToken(null);
+  };
+
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      clearSession();
+      setIsAuthReady(true);
+      return undefined;
+    }
 
     let isCurrent = true;
+    setIsAuthReady(false);
 
     fetchCurrentUser(token)
       .then(({ user: freshUser }) => {
@@ -40,7 +55,11 @@ export function AuthProvider({ children }) {
       })
       .catch(() => {
         if (!isCurrent) return;
-        logout();
+        clearSession();
+      })
+      .finally(() => {
+        if (!isCurrent) return;
+        setIsAuthReady(true);
       });
 
     return () => {
@@ -54,8 +73,7 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    localStorage.setItem("role", userRole);
-    setRole(userRole);
+    clearSession();
   };
 
   const loginWithCredentials = async ({ role: expectedRole, email, password }) => {
@@ -147,13 +165,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("role");
-    localStorage.removeItem(CURRENT_USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-    setRole(null);
-    setUser(null);
-    setToken(null);
+    clearSession();
+    setIsAuthReady(true);
   };
+
+  const isAuthenticated = Boolean(token && user && role && user.role === role);
 
   return (
     <AuthContext.Provider
@@ -161,6 +177,8 @@ export function AuthProvider({ children }) {
         role,
         token,
         user,
+        isAuthReady,
+        isAuthenticated,
         login,
         loginWithCredentials,
         signup,

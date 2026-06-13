@@ -1,9 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.core.security import require_roles
 from app.services.routing_service import routing_service
 
-router = APIRouter(prefix="/routing", tags=["routing"])
+router = APIRouter(
+    prefix="/routing",
+    tags=["routing"],
+    dependencies=[Depends(require_roles("admin"))],
+)
 
 
 class AssignmentStatusUpdate(BaseModel):

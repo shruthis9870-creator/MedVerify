@@ -1,8 +1,12 @@
 import Layout from "../components/Layout";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   
 
   return (
@@ -192,8 +196,8 @@ export default function Settings() {
 
           <button
             onClick={() => {
-              localStorage.removeItem("role");
-              window.location.href = "/";
+              logout();
+              navigate("/", { replace: true });
             }}
             className="
               mt-6

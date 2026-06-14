@@ -331,6 +331,15 @@ class AuthService:
         sent = self._send_twilio_otp(normalized_phone, otp)
 
         if not sent:
+            if settings.allow_dev_otp:
+                print(f"DEV OTP for {role} {normalized_phone}: {otp}")
+                return {
+                    "sent": False,
+                    "delivery": "development",
+                    "dev_otp": otp,
+                    "message": "Twilio delivery is disabled. Use this development OTP for local testing.",
+                }
+
             redis_client.delete(f"{self.OTP_PREFIX}{role}:{normalized_phone}")
             raise ValueError("Unable to deliver OTP. Please check SMS/WhatsApp delivery configuration and try again.")
 
@@ -396,6 +405,19 @@ class AuthService:
             doctors.append(self._public_user(user))
 
         return sorted(doctors, key=lambda doctor: doctor.get("name") or "")
+
+    def list_patients(self) -> list[dict[str, Any]]:
+        patients: list[dict[str, Any]] = []
+
+        for raw in redis_client.hvals(self.USERS_KEY):
+            user = self._loads(raw)
+
+            if not user or user.get("role") != "patient":
+                continue
+
+            patients.append(self._public_user(user))
+
+        return sorted(patients, key=lambda patient: patient.get("name") or "")
 
 
 auth_service = AuthService()

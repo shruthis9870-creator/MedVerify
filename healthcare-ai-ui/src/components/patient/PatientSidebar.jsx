@@ -103,7 +103,7 @@ className={`         ${collapsed ? "w-24" : "w-72"}
       {!collapsed && (
         <div>
           <h1 className="text-3xl font-bold">
-            MediAssist
+            MedVerify
           </h1>
 
           <p className="text-xs text-cyan-200">

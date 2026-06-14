@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   User,
@@ -9,18 +9,32 @@ import {
 } from "lucide-react";
 
 import PageShell from "../components/layout/PageShell";
+import { useAuth } from "../context/AuthContext";
+import { displaySpecialty, displayUserName, userInitials } from "../utils/profile";
 
 export default function EditProfile() {
+  const { user } = useAuth();
   const [saved, setSaved] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: "Dr. Sharma",
-    email: "drsharma@mediassist.com",
-    phone: "+91 9876543210",
-    hospital: "MediAssist Hospital",
-    specialization: "Cardiology",
-    experience: "15 Years",
+    name: "",
+    email: "",
+    phone: "",
+    hospital: "",
+    specialization: "",
+    experience: "",
   });
+
+  useEffect(() => {
+    setFormData({
+      name: displayUserName(user, ""),
+      email: user?.email || "",
+      phone: user?.phone || "",
+      hospital: "",
+      specialization: displaySpecialty(user, ""),
+      experience: "",
+    });
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -66,7 +80,7 @@ export default function EditProfile() {
             </div>
 
             <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/20 text-white text-4xl font-bold backdrop-blur-md">
-              DS
+              {userInitials(user)}
             </div>
 
           </div>
@@ -193,6 +207,7 @@ export default function EditProfile() {
                 name="hospital"
                 value={formData.hospital}
                 onChange={handleChange}
+                placeholder="No hospital value provided by backend"
                 className="
                   w-full
                   rounded-3xl
@@ -257,6 +272,7 @@ export default function EditProfile() {
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
+                placeholder="No experience value provided by backend"
                 className="
                   w-full
                   rounded-3xl
@@ -299,7 +315,7 @@ export default function EditProfile() {
 
             <div className="mt-6 rounded-3xl bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200">
 
-              Profile updated successfully.
+              Profile update UI is using your authenticated account data. Backend profile persistence is not available yet.
 
             </div>
 

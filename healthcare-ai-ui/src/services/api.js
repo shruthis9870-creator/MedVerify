@@ -137,6 +137,26 @@ export function normalizeAlert(rawAlert = {}) {
   };
 }
 
+export function normalizeRegisteredPatient(rawPatient = {}) {
+  const patientId = rawPatient.patientId || rawPatient.patient_id || rawPatient.userId || rawPatient.user_id;
+
+  return {
+    id: patientId || "unknown",
+    name: rawPatient.name || rawPatient.email || "Unnamed patient",
+    phone: cleanPhone(rawPatient.phone || patientId || ""),
+    disease: "No active clinical alert",
+    severity: "Low",
+    organ: "Unassigned",
+    age: "Not provided",
+    admitted: "No",
+    reports: [],
+    symptoms: [],
+    history: rawPatient.createdAt ? [`Registered ${formatTime(rawPatient.createdAt)}`] : ["Registered patient"],
+    aiSuggestions: ["No clinical recommendation has been generated yet."],
+    latestAlert: null,
+  };
+}
+
 export function alertsToPatients(alerts = []) {
   const byPatient = new Map();
 
@@ -289,6 +309,11 @@ export async function fetchCurrentUser(token) {
 export async function fetchActiveAlerts() {
   const data = await request("/alerts/active");
   return Array.isArray(data.alerts) ? data.alerts.map(normalizeAlert) : [];
+}
+
+export async function fetchRegisteredPatients() {
+  const data = await request("/patients");
+  return Array.isArray(data.patients) ? data.patients.map(normalizeRegisteredPatient) : [];
 }
 
 export async function fetchPatientReports(patientId) {

@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     twilio_validate_webhook_signature: bool = True
     twilio_webhook_public_url: str | None = None
     allow_unsigned_twilio_webhook: bool = False
+    cors_allowed_origins: str = (
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173,"
+        "http://localhost:3000,"
+        "http://127.0.0.1:3000"
+    )
+    easyocr_model_dir: str = str(BACKEND_ROOT / ".easyocr")
+    allow_dev_otp: bool = False
     admin_allowed_emails: str = ""
     admin_bootstrap_users: str = ""
 

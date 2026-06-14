@@ -13,6 +13,7 @@ import { useState, useEffect, useRef } from "react";
 import Timeline from "../dashboard/Timeline";
 import { useLiveAlerts } from "../../hooks/useLiveAlerts";
 import { useAuth } from "../../context/AuthContext";
+import { displaySpecialty, displayUserName } from "../../utils/profile";
 
 export default function Topbar({ onMenuClick }) {
   const navigate = useNavigate();
@@ -268,11 +269,11 @@ export default function Topbar({ onMenuClick }) {
 
           <div className="text-left">
             <p className="text-sm font-semibold text-slate-900">
-              {user?.name || "Dr. Sharma"}
+              {displayUserName(user)}
             </p>
 
             <p className="text-xs text-slate-500">
-              {user?.specialty || "Cardiologist"}
+              {displaySpecialty(user)}
             </p>
           </div>
         </button>

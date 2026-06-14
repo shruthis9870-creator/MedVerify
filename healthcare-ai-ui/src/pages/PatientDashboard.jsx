@@ -90,11 +90,11 @@ export default function PatientDashboard() {
           </h2>
 
           <p className="text-slate-300">
-            Cardiology Observation
+            No live treatment plan available yet.
           </p>
 
           <p className="text-slate-500 mt-4 text-sm">
-            Under supervision of Dr. Sharma
+            Treatment details will appear here when provided by the backend.
           </p>
 
         </div>
@@ -113,11 +113,11 @@ export default function PatientDashboard() {
           </h2>
 
           <p className="text-slate-300">
-            2 June 2026
+            No appointment scheduled.
           </p>
 
           <p className="text-slate-500 mt-4 text-sm">
-            10:30 AM • Cardiology Department
+            Appointment data is not available from the backend yet.
           </p>
 
         </div>
@@ -159,42 +159,9 @@ export default function PatientDashboard() {
             Treatment Progress
           </h2>
 
-          <div className="space-y-6">
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <span>Consultation</span>
-                <span>100%</span>
-              </div>
-
-              <div className="h-3 bg-slate-700 rounded-full">
-                <div className="h-3 w-full bg-green-500 rounded-full"></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <span>Diagnosis</span>
-                <span>80%</span>
-              </div>
-
-              <div className="h-3 bg-slate-700 rounded-full">
-                <div className="h-3 w-[80%] bg-cyan-500 rounded-full"></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <span>Recovery</span>
-                <span>40%</span>
-              </div>
-
-              <div className="h-3 bg-slate-700 rounded-full">
-                <div className="h-3 w-[40%] bg-yellow-500 rounded-full"></div>
-              </div>
-            </div>
-
-          </div>
+          <p className="text-slate-300">
+            No live treatment milestones are available yet.
+          </p>
 
         </div>
 
@@ -203,23 +170,9 @@ export default function PatientDashboard() {
     Medication Schedule
   </h2>
 
-  <div className="space-y-4">
-
-    <div className="flex justify-between">
-      <span>Aspirin</span>
-      <span className="text-cyan-400">
-        Morning
-      </span>
-    </div>
-
-    <div className="flex justify-between">
-      <span>Atorvastatin</span>
-      <span className="text-cyan-400">
-        Night
-      </span>
-    </div>
-
-  </div>
+  <p className="text-slate-300">
+    No medication schedule is available from the backend yet.
+  </p>
 </div>
 
 <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8">
@@ -228,9 +181,7 @@ export default function PatientDashboard() {
   </h2>
 
   <p className="text-slate-300">
-    Patient showing positive recovery.
-    Continue medication and maintain
-    low-sodium diet.
+    No doctor notes are available yet.
   </p>
 </div>
 
@@ -255,21 +206,9 @@ export default function PatientDashboard() {
           </div>
 
           <p className="text-slate-300 leading-relaxed">
-            Recent ECG and blood test reports indicate
-            stable cardiac activity. AI recommends
-            maintaining medication schedule and attending
-            the upcoming cardiology review.
+            AI analysis will appear after a real uploaded report is analyzed.
           </p>
 
-          <div className="mt-6 flex items-center gap-3">
-            <span className="bg-green-500/20 text-green-400 px-4 py-2 rounded-full">
-              Low Risk
-            </span>
-
-            <span className="bg-cyan-500/20 text-cyan-400 px-4 py-2 rounded-full">
-              94% Confidence
-            </span>
-          </div>
           <button
   onClick={() => navigate("/patient/ai-analysis")}
   className="

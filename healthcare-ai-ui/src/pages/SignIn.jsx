@@ -20,7 +20,7 @@ export default function SignIn() {
           </h1>
 
           <p className="text-slate-400 text-xl">
-            Continue with your MediAssist account
+            Continue with your MedVerify account
           </p>
 
         </div>
@@ -166,7 +166,7 @@ export default function SignIn() {
         <div className="text-center mt-16">
 
           <p className="text-slate-500">
-            Protected by MediAssist Secure Authentication
+            Protected by MedVerify secure authentication
           </p>
 
         </div>

@@ -108,11 +108,14 @@ async def whatsapp_webhook(request: Request):
             # If emergency keywords detected, create HIGH severity alert
             if ocr_result.get("should_create_alert"):
                 alert_service.create_alert(
-                    patient_id=from_number,
+                    user_id=from_number,
                     severity="HIGH",
                     reason=ocr_result.get("alert_reason", "Emergency keywords detected in uploaded report"),
-                    source="whatsapp_image",
-                    report_id=report.get("id") if report else None,
+                    payload={
+                        "source": "whatsapp_image",
+                        "report_id": report.get("report_id") if report else None,
+                        "ocr_text": ocr_result.get("ocr_text", ""),
+                    },
                 )
             
             # Store OCR text in session for later use
@@ -140,11 +143,13 @@ async def whatsapp_webhook(request: Request):
                 # Create alert based on severity
                 if ai_result.get("should_create_alert"):
                     alert_service.create_alert(
-                        patient_id=from_number,
+                        user_id=from_number,
                         severity=ai_result.get("severity", "MEDIUM"),
                         reason=ai_result.get("reason", "Symptoms detected"),
-                        source="whatsapp_symptom",
-                        symptoms=symptoms,
+                        payload={
+                            "source": "whatsapp_symptom",
+                            "symptoms": symptoms,
+                        },
                     )
                 
                 # For HIGH severity, override the normal flow

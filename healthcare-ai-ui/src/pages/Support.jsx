@@ -42,7 +42,7 @@ export default function Support() {
                 <Headset className="h-10 w-10" />
 
                 <h1 className="text-4xl font-bold">
-                  MediAssist Support
+                  MedVerify Support
                 </h1>
 
               </div>
@@ -100,7 +100,7 @@ export default function Support() {
             </h2>
 
             <p className="mt-3 text-slate-600">
-              support@mediassist.com
+              support@medverify.local
             </p>
 
           </div>

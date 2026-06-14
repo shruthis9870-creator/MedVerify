@@ -1,0 +1,11 @@
+{
+  "installCommand": "cd healthcare-ai-ui && npm install",
+  "buildCommand": "cd healthcare-ai-ui && npm run build",
+  "outputDirectory": "healthcare-ai-ui/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,16 +1,12 @@
-from fastapi import FastAPI
-from app.api.ai_ocr import router as ai_ocr_router
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
-app = FastAPI(title="MedVerify Backend")
+# Add these lines after creating the FastAPI app
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/dashboard", StaticFiles(directory=static_dir, html=True), name="dashboard")
 
-@app.get("/")
-@app.get("/health")
-def health():
-    return {"status": "healthy", "service": "MedVerify Backend"}
-
-# Register AI/OCR routes
-app.include_router(ai_ocr_router)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+@app.get("/dashboard")
+async def serve_dashboard():
+    return FileResponse(os.path.join(static_dir, "index.html"))

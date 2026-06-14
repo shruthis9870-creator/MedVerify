@@ -1,5 +1,6 @@
 """
 AI/OCR Routes for MedVerify
+All endpoints use real services from ocr_service.py - no static data
 """
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
@@ -20,100 +21,105 @@ class SummarizeRequest(BaseModel):
 
 @router.get("/ai-ocr/health")
 async def health_check():
-    """Health check endpoint"""
-    # Try to import OCR service to check if it's available
+    """
+    Health check endpoint - returns real status from OCR service
+    """
     try:
         from app.services.ocr_service import ocr_service
         easyocr_available = ocr_service.reader is not None
-    except:
-        easyocr_available = False
-    
-    return {
-        "status": "healthy",
-        "service": "ai-ocr",
-        "easyocr_available": easyocr_available,
-        "message": "AI/OCR service is running"
-    }
+        return {
+            "status": "healthy",
+            "service": "ai-ocr",
+            "easyocr_available": easyocr_available,
+            "message": "AI/OCR service is running with EasyOCR" if easyocr_available else "AI/OCR service running (EasyOCR not loaded)"
+        }
+    except ImportError:
+        return {
+            "status": "degraded",
+            "service": "ai-ocr",
+            "easyocr_available": False,
+            "message": "OCR service module not found"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "ai-ocr",
+            "error": str(e),
+            "message": "Service error"
+        }
 
 
 @router.post("/ai-ocr/triage/analyze")
 async def analyze_symptoms(request: SymptomRequest):
     """
     Analyze symptoms and determine severity
+    Uses real triage service from ocr_service.py
     """
-    symptoms_lower = [s.lower() for s in request.symptoms]
-    
-    emergency_symptoms = ["chest pain", "difficulty breathing", "shortness of breath",
-                         "severe bleeding", "unconscious", "heart attack", "stroke"]
-    high_urgency = [s for s in symptoms_lower if s in emergency_symptoms]
-    
-    if high_urgency:
+    try:
+        from app.services.ocr_service import triage_service
+        
+        # Call the real service (no static data)
+        result = triage_service.analyze_symptoms(
+            request.symptoms, 
+            request.duration
+        )
+        
         return {
-            "severity": "HIGH",
-            "reason": f"{', '.join(high_urgency)} detected",
-            "recommendation": "Seek immediate medical attention. Call emergency services.",
-            "symptoms_analyzed": request.symptoms
+            "severity": result.get("severity", "LOW"),
+            "reason": result.get("reason", "Symptoms analyzed"),
+            "recommendation": result.get("recommendation", "Consult a physician if symptoms persist"),
+            "symptoms_analyzed": request.symptoms,
+            "duration": request.duration
         }
-    
-    medium_symptoms = ["fever", "vomiting", "diarrhea", "severe headache", "injury", "cough"]
-    medium_urgency = [s for s in symptoms_lower if s in medium_symptoms]
-    
-    if medium_urgency:
-        return {
-            "severity": "MEDIUM",
-            "reason": f"{', '.join(medium_urgency)} reported",
-            "recommendation": "Consult a physician within 24-48 hours",
-            "symptoms_analyzed": request.symptoms
-        }
-    
-    return {
-        "severity": "LOW",
-        "reason": "Non-urgent symptoms reported",
-        "recommendation": "Monitor symptoms. Schedule routine appointment if needed.",
-        "symptoms_analyzed": request.symptoms
-    }
+        
+    except ImportError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Triage service not available: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Triage analysis failed: {str(e)}"
+        )
 
 
 @router.post("/ai-ocr/report/summarize")
 async def summarize_report(request: SummarizeRequest):
-    """Summarize extracted medical report text"""
-    text = request.text.lower()
-    
-    findings = []
-    if "bp" in text or "blood pressure" in text:
-        findings.append("Blood pressure mentioned")
-    if "sugar" in text or "glucose" in text:
-        findings.append("Blood sugar mentioned")
-    if "medication" in text or "prescribed" in text:
-        findings.append("Medications prescribed")
-    if "fever" in text:
-        findings.append("Fever mentioned")
-    if "cough" in text:
-        findings.append("Cough mentioned")
-    
-    abnormalities = []
-    if "abnormal" in text:
-        abnormalities.append("Abnormal results detected")
-    if "high" in text and "blood" in text:
-        abnormalities.append("High blood levels detected")
-    if "low" in text and "blood" in text:
-        abnormalities.append("Low blood levels detected")
-    
-    return {
-        "summary": f"📋 Medical Report Analysis:\n\n{request.text[:300]}..." if len(request.text) > 300 else f"📋 Medical Report Analysis:\n\n{request.text}",
-        "key_findings": findings if findings else ["No specific findings extracted"],
-        "abnormalities": abnormalities if abnormalities else ["No obvious abnormalities detected"],
-        "medications": []
-    }
+    """
+    Summarize extracted medical report text
+    Uses real summarization service from ocr_service.py
+    """
+    try:
+        from app.services.ocr_service import summarization_service
+        
+        # Call the real service (no static data)
+        result = summarization_service.summarize(request.text)
+        
+        return {
+            "summary": result.get("summary", "Unable to generate summary"),
+            "key_findings": result.get("key_findings", []),
+            "abnormalities": result.get("abnormalities", []),
+            "medications": result.get("medications", [])
+        }
+        
+    except ImportError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Summarization service not available: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Summarization failed: {str(e)}"
+        )
 
 
 @router.post("/ai-ocr/ocr/extract")
 async def extract_ocr(file: UploadFile = File(...)):
     """
     Extract text from medical image/prescription using EasyOCR
-    
-    Upload an image file (JPG, PNG, etc.)
-    Returns extracted text with confidence score and emergency detection
+    Uses real OCR service from ocr_service.py
     """
     if not file.content_type.startswith("image/"):
         raise HTTPException(
@@ -132,7 +138,7 @@ async def extract_ocr(file: UploadFile = File(...)):
                 detail="File too large. Maximum size: 10MB"
             )
         
-        # Import and use the real OCR service
+        # Use the real OCR service
         from app.services.ocr_service import ocr_service
         result = ocr_service.extract_text_from_image(contents)
         

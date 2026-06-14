@@ -58,3 +58,42 @@ For local unsigned webhook testing only:
 ```env
 ALLOW_UNSIGNED_TWILIO_WEBHOOK=true
 ```
+
+## Production Deployment
+
+Vercel should host only the React frontend in `healthcare-ai-ui`. The FastAPI
+backend needs a separate host with Redis. This repo includes:
+
+- `vercel.json` for the Vercel frontend build.
+- `backend/Dockerfile` for the FastAPI backend.
+- `render.yaml` for a Render backend plus Redis blueprint.
+
+### 1. Deploy Backend On Render
+
+1. Push this repo to GitHub.
+2. In Render, create a new Blueprint from this repo.
+3. Render will create:
+   - `medverify-backend`
+   - `medverify-redis`
+4. Set these Render environment variables on `medverify-backend`:
+
+```env
+ADMIN_ALLOWED_EMAILS=admin1@example.com,admin2@example.com
+ADMIN_BOOTSTRAP_USERS=[{"email":"admin1@example.com","password":"strong-password","name":"Admin One"}]
+TWILIO_VALIDATE_WEBHOOK_SIGNATURE=true
+```
+
+Render injects `REDIS_URL` from the Redis service automatically through
+`render.yaml`.
+
+### 2. Connect Vercel Frontend To Backend
+
+In Vercel project settings, add:
+
+```env
+VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
+```
+
+Redeploy Vercel after setting this variable. Without `VITE_API_BASE_URL`, the
+deployed frontend falls back to `http://localhost:8000`, which works locally but
+fails from phones and public browsers.

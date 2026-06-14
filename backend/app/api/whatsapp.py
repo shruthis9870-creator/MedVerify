@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
+import httpx
 
 from app.core.config import settings
 from app.models.message import IncomingMessage
@@ -9,8 +10,12 @@ from app.models.response import BotResponse
 from app.services.alert_service import alert_service
 from app.services.orchestrator import orchestrator
 from app.services.report_service import report_service
+from app.services.ai_integration import AIFlowIntegration
 
 router = APIRouter()
+
+# Initialize AI integration
+ai_integration = AIFlowIntegration()
 
 
 def _verify_twilio_signature(request: Request, form_values: dict[str, str]) -> None:
@@ -77,23 +82,95 @@ async def whatsapp_webhook(request: Request):
         },
     )
 
+    # ============================================
+    # AI INTEGRATION: Process images (prescriptions/reports)
+    # ============================================
     if media_urls:
-        report_service.create_report(
+        # Create report as before
+        report = report_service.create_report(
             patient_id=from_number,
             media_urls=media_urls,
             metadata=incoming_message.metadata,
         )
+        
+        # NEW: Process with AI/OCR
+        try:
+            # Download the image from the media URL
+            async with httpx.AsyncClient() as client:
+                media_response = await client.get(media_urls[0])
+                image_bytes = media_response.content
+            
+            # Extract text using AI OCR
+            ocr_result = await ai_integration.process_image_message(
+                image_bytes, from_number, {}
+            )
+            
+            # If emergency keywords detected, create HIGH severity alert
+            if ocr_result.get("should_create_alert"):
+                alert_service.create_alert(
+                    patient_id=from_number,
+                    severity="HIGH",
+                    reason=ocr_result.get("alert_reason", "Emergency keywords detected in uploaded report"),
+                    source="whatsapp_image",
+                    report_id=report.get("id") if report else None,
+                )
+            
+            # Store OCR text in session for later use
+            print(f"OCR extracted: {ocr_result.get('ocr_text', '')[:100]}...")
+            
+        except Exception as ai_error:
+            print(f"AI processing error: {ai_error}")
+            # Continue without AI if fails
+        
         alert_service.attach_patient_reports_to_open_alerts(from_number)
 
-    try:
-        bot_response = orchestrator.handle_message(incoming_message)
-    except Exception as exc:
-        print("WHATSAPP WEBHOOK ERROR:", exc)
-        bot_response = BotResponse(
-            response_type="text",
-            message="Something went wrong on our side. Please try again in a moment.",
-            next_flow="start",
-        )
+    # ============================================
+    # AI INTEGRATION: Process symptom messages
+    # ============================================
+    bot_response = None
+    
+    # Check if this is a symptom message
+    if body:
+        symptoms = ai_integration.extract_symptoms_from_text(body)
+        
+        if symptoms:
+            try:
+                ai_result = await ai_integration.process_symptom_message(symptoms, {})
+                
+                # Create alert based on severity
+                if ai_result.get("should_create_alert"):
+                    alert_service.create_alert(
+                        patient_id=from_number,
+                        severity=ai_result.get("severity", "MEDIUM"),
+                        reason=ai_result.get("reason", "Symptoms detected"),
+                        source="whatsapp_symptom",
+                        symptoms=symptoms,
+                    )
+                
+                # For HIGH severity, override the normal flow
+                if ai_result.get("severity") == "HIGH":
+                    bot_response = BotResponse(
+                        response_type="text",
+                        message=ai_result.get("response_text", "⚠️ Please seek immediate medical attention."),
+                        next_flow="emergency",
+                    )
+                    
+            except Exception as ai_error:
+                print(f"AI symptom error: {ai_error}")
+
+    # ============================================
+    # Normal flow (orchestrator) if AI didn't override
+    # ============================================
+    if bot_response is None:
+        try:
+            bot_response = orchestrator.handle_message(incoming_message)
+        except Exception as exc:
+            print("WHATSAPP WEBHOOK ERROR:", exc)
+            bot_response = BotResponse(
+                response_type="text",
+                message="Something went wrong on our side. Please try again in a moment.",
+                next_flow="start",
+            )
 
     twilio_response = MessagingResponse()
     twilio_response.message(bot_response.message)

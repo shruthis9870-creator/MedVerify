@@ -14,6 +14,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import {
   fetchRoutingAssignments,
+  syncRoutingAssignments,
   updateRoutingAssignmentStatus,
 } from "../services/api";
 
@@ -64,9 +65,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSyncAssignments = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await syncRoutingAssignments();
+      setRoutingData({
+        assignments: data.assignments || [],
+        doctors: data.doctors || [],
+        summary: data.summary || {},
+        generatedAt: data.generated_at,
+      });
+      setError("");
+    } catch (err) {
+      setError(err.message || "Unable to sync routing assignments.");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    loadAssignments();
-    const intervalId = window.setInterval(loadAssignments, 8000);
+    handleSyncAssignments();
+    const intervalId = window.setInterval(handleSyncAssignments, 8000);
     return () => window.clearInterval(intervalId);
   }, []);
 
@@ -139,6 +159,13 @@ export default function AdminDashboard() {
             >
               <RefreshCw size={18} className={isRefreshing ? "animate-spin" : ""} />
               Refresh
+            </button>
+            <button
+              onClick={handleSyncAssignments}
+              className="inline-flex items-center gap-2 rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
+            >
+              <ClipboardList size={18} />
+              Sync New Routes
             </button>
             <button
               onClick={() => {

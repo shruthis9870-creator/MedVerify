@@ -10,17 +10,36 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { fetchPatientReports } from "../services/api";
+import { fetchPatientReports, openReportFile } from "../services/api";
 
 export default function PatientDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [reports, setReports] = useState([]);
   const [reportError, setReportError] = useState("");
-  const patientId = user?.patientId || "whatsapp:+919999000001";
+  const [openReportError, setOpenReportError] = useState("");
+  const patientId = user?.patientId;
+
+  const handleOpenReport = async (report) => {
+    setOpenReportError("");
+
+    try {
+      await openReportFile(report);
+    } catch (error) {
+      setOpenReportError(error.message || "Unable to open report.");
+    }
+  };
 
   useEffect(() => {
     let isCurrent = true;
+
+    if (!patientId) {
+      setReports([]);
+      setReportError("Your patient session is missing a patient ID. Please log out and sign in again.");
+      return () => {
+        isCurrent = false;
+      };
+    }
 
     fetchPatientReports(patientId)
       .then((nextReports) => {
@@ -289,6 +308,12 @@ export default function PatientDashboard() {
             </div>
           )}
 
+          {openReportError && (
+            <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-5 text-sm font-semibold text-red-200">
+              {openReportError}
+            </div>
+          )}
+
           {reports.length > 0 ? (
             reports.map((report) => (
               <div
@@ -300,14 +325,13 @@ export default function PatientDashboard() {
                   <span>{report.name}</span>
                 </div>
 
-                <a
-                  href={report.url}
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => handleOpenReport(report)}
                   className="text-cyan-300 hover:text-cyan-100"
                 >
                   Open
-                </a>
+                </button>
               </div>
             ))
           ) : (

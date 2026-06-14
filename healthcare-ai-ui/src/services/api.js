@@ -57,6 +57,7 @@ function normalizeReports(payload = {}) {
     }
 
     return {
+      reportId: report.report_id || report.reportId || report.id,
       name: report.name || report.filename || report.url || `Report ${index + 1}`,
       url: report.url || report.media_url || report.href || "",
     };
@@ -214,6 +215,35 @@ async function request(path, options = {}) {
   return response.json();
 }
 
+async function requestBlob(path, options = {}) {
+  const { auth = true, headers = {}, ...fetchOptions } = options;
+  const token = auth ? getStoredToken() : null;
+  const requestHeaders = {
+    ...headers,
+    ...(token && !headers.Authorization ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: requestHeaders,
+    ...fetchOptions,
+  });
+
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+
+    try {
+      const data = await response.json();
+      message = data.detail || message;
+    } catch {
+      // Keep the generic message when the backend did not return JSON.
+    }
+
+    throw new Error(message);
+  }
+
+  return response.blob();
+}
+
 export async function signupUser(payload) {
   return request("/auth/signup", {
     auth: false,
@@ -280,12 +310,30 @@ export async function uploadPatientReport({ patientId, patientName, file }) {
   });
 }
 
+export async function openReportFile(report) {
+  if (!report?.reportId) {
+    throw new Error("This report does not have a secure download identifier.");
+  }
+
+  const blob = await requestBlob(`/reports/${encodeURIComponent(report.reportId)}/file`);
+  const blobUrl = URL.createObjectURL(blob);
+  window.open(blobUrl, "_blank", "noopener,noreferrer");
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(blobUrl);
+  }, 60_000);
+}
+
 export async function acknowledgeAlert(alertId) {
   return request(`/alerts/${encodeURIComponent(alertId)}/ack`, { method: "POST" });
 }
 
 export async function fetchRoutingAssignments() {
   return request("/routing/assignments");
+}
+
+export async function syncRoutingAssignments() {
+  return request("/routing/assignments/sync", { method: "POST" });
 }
 
 export async function updateRoutingAssignmentStatus(assignmentId, status) {

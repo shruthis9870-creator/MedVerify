@@ -34,11 +34,7 @@ export default function DoctorSignIn() {
     }
 
     setVerificationStarted(true);
-    setOtpMessage(
-      result.otp?.sent
-        ? "OTP sent to your registered phone."
-        : `Dev OTP: ${result.otp?.dev_otp}`
-    );
+    setOtpMessage("OTP sent to your registered phone.");
   };
 
   const handleVerifyOtp = async () => {

@@ -45,11 +45,7 @@ export default function PatientLogin() {
       return;
     }
 
-    setOtpMessage(
-      result.sent
-        ? "OTP sent to your registered phone."
-        : `Dev OTP: ${result.dev_otp}`
-    );
+    setOtpMessage("OTP sent to your registered phone.");
   };
 
   const handleVerifyOtp = async () => {

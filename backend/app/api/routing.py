@@ -20,6 +20,11 @@ def get_routing_assignments():
     return routing_service.list_assignments()
 
 
+@router.post("/assignments/sync")
+def sync_routing_assignments():
+    return routing_service.sync_assignments()
+
+
 @router.post("/assignments/{assignment_id}/status")
 def update_assignment_status(assignment_id: str, payload: AssignmentStatusUpdate):
     assignment = routing_service.update_status(assignment_id, payload.status)

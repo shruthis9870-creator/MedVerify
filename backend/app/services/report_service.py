@@ -31,8 +31,9 @@ class ReportService:
         patient_id: str,
         media_urls: list[str],
         metadata: dict[str, Any] | None = None,
+        report_id: str | None = None,
     ) -> dict[str, Any]:
-        report_id = str(uuid4())
+        report_id = report_id or str(uuid4())
 
         report = {
             "report_id": report_id,
@@ -56,13 +57,13 @@ class ReportService:
 
         return report
 
-    def _get_report(self, report_id: str) -> dict[str, Any] | None:
+    def get_report(self, report_id: str) -> dict[str, Any] | None:
         return self._loads(redis_client.hget(self.REPORTS_KEY, report_id))
 
     def list_reports(self, patient_id: str | None = None) -> list[dict[str, Any]]:
         if patient_id:
             reports = [
-                self._get_report(report_id)
+                self.get_report(report_id)
                 for report_id in redis_client.lrange(
                     self._patient_key(patient_id),
                     0,

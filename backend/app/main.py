@@ -1,10 +1,6 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
-from app.services.redis_service import redis_client
 from app.api.auth import router as auth_router
 from app.api.alerts import router as alerts_router
 from app.api.health import router as health_router
@@ -14,9 +10,6 @@ from app.api.dashboard import router as dashboard_router
 from app.api.routing import router as routing_router
 
 from app.core.config import settings
-
-UPLOADS_DIR = Path(__file__).resolve().parents[1] / "uploads"
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title=settings.app_name)
 
@@ -35,62 +28,8 @@ app.include_router(alerts_router)
 app.include_router(reports_router)
 app.include_router(dashboard_router)
 app.include_router(routing_router)
-app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 @app.get("/")
 def root():
     return {"message": "Healthcare AI API is running"}
-
-@app.get("/test")
-def test():
-    from app.models.message import IncomingMessage
-    from app.services.orchestrator import orchestrator
-
-    msg = IncomingMessage(
-        user_id="demo_user",
-        text="hi",
-        channel="web"
-    )
-
-    response = orchestrator.handle_message(msg)
-
-    return {
-        "reply": response.message
-    }
-@app.get("/redis-test")
-def redis_test():
-    import time
-
-    start = time.time()
-
-    try:
-        redis_client.ping()
-        return {
-            "status": "connected",
-            "time": time.time() - start
-        }
-
-    except Exception as e:
-        return {
-            "status": "failed",
-            "error": str(e),
-            "time": time.time() - start
-        }
-@app.get("/session-test/{user_id}/{message}")
-def session_test(user_id: str, message: str):
-
-    from app.models.message import IncomingMessage
-    from app.services.orchestrator import orchestrator
-
-    incoming = IncomingMessage(
-        user_id=user_id,
-        text=message,
-        channel="web"
-    )
-
-    response = orchestrator.handle_message(incoming)
-
-    return {
-        "reply": response.message
-    }

@@ -39,6 +39,17 @@ class FakeRedis:
     def hget(self, key, field):
         return self.hashes.get(key, {}).get(field)
 
+    def hdel(self, key, *fields):
+        values = self.hashes.get(key, {})
+        deleted = 0
+
+        for field in fields:
+            if field in values:
+                deleted += 1
+                values.pop(field, None)
+
+        return deleted
+
     def hvals(self, key):
         return list(self.hashes.get(key, {}).values())
 

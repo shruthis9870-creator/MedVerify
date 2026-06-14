@@ -76,6 +76,13 @@ class AuthService:
         if user.get("phone"):
             redis_client.hset(self.PHONE_INDEX_KEY, user["phone"], user["user_id"])
 
+    def _delete_user(self, user: dict[str, Any]) -> None:
+        redis_client.hdel(self.USERS_KEY, user["user_id"])
+        redis_client.hdel(self.EMAIL_INDEX_KEY, user["email"])
+
+        if user.get("phone"):
+            redis_client.hdel(self.PHONE_INDEX_KEY, user["phone"])
+
     def _configured_admin_emails(self) -> set[str]:
         emails = {
             self._normalize_email(email)
@@ -225,7 +232,12 @@ class AuthService:
         }
 
         self._save_user(user)
-        otp_status = self.request_otp(role, normalized_phone)
+
+        try:
+            otp_status = self.request_otp(role, normalized_phone)
+        except Exception:
+            self._delete_user(user)
+            raise
 
         return {
             "user": self._public_user(user),
@@ -318,10 +330,13 @@ class AuthService:
 
         sent = self._send_twilio_otp(normalized_phone, otp)
 
+        if not sent:
+            redis_client.delete(f"{self.OTP_PREFIX}{role}:{normalized_phone}")
+            raise ValueError("Unable to deliver OTP. Please check SMS/WhatsApp delivery configuration and try again.")
+
         return {
-            "sent": sent,
-            "delivery": "twilio" if sent else "dev_mode",
-            "dev_otp": None if sent else otp,
+            "sent": True,
+            "delivery": "twilio",
         }
 
     def verify_otp(self, role: UserRole, phone: str, otp: str) -> dict[str, Any]:

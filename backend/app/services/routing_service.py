@@ -127,11 +127,19 @@ class RoutingService:
                     "unit": specialty,
                     "shift": "Registered",
                     "capacity": DEFAULT_DOCTOR_CAPACITY,
+                    "verified": bool(doctor.get("verified")),
                     "status": "Available" if doctor.get("verified") else "Pending Verification",
                 }
             )
 
         return doctors
+
+    def _assignable_doctors(self, doctors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [
+            doctor
+            for doctor in doctors
+            if doctor.get("verified") and doctor.get("status") == "Available"
+        ]
 
     def _alert_patient_id(self, alert: dict[str, Any]) -> str:
         return str(alert.get("patient_id") or alert.get("user_id") or "unknown")
@@ -276,72 +284,152 @@ class RoutingService:
             ),
         )[0]
 
-    def list_assignments(self) -> dict[str, Any]:
-        alerts = alert_service.list_active_alerts()
-        patients = self._group_alerts_by_patient(alerts)
-        saved = self._saved_assignments()
-        doctors = self._registered_doctors()
-        doctor_load: dict[str, int] = {doctor["id"]: 0 for doctor in doctors}
-        assignments: list[dict[str, Any]] = []
+    def _build_assignment(
+        self,
+        patient: dict[str, Any],
+        doctors: list[dict[str, Any]],
+        doctor_load: dict[str, int],
+    ) -> dict[str, Any]:
+        assignment_id = f"route-{patient['patient_id']}"
+        clinical_text = " ".join(
+            patient["symptoms"] + patient["reasons"] + patient["recommended_actions"]
+        )
+        match = self._match_specialty(clinical_text, patient["severities"])
+        doctor = self._choose_doctor(match["specialty"], doctors, doctor_load)
 
-        for patient in patients:
-            assignment_id = f"route-{patient['patient_id']}"
-            saved_assignment = saved.get(assignment_id, {})
-            clinical_text = " ".join(
-                patient["symptoms"] + patient["reasons"] + patient["recommended_actions"]
-            )
-            match = self._match_specialty(clinical_text, patient["severities"])
-            doctor = self._choose_doctor(match["specialty"], doctors, doctor_load)
+        if doctor:
+            doctor_load[doctor["id"]] += 1
 
-            if doctor:
-                doctor_load[doctor["id"]] += 1
+        priority = self._priority(patient["severities"], match["red_flag_hits"])
+        confidence = min(98, 68 + (match["score"] * 8) + (8 if priority == "Critical" else 0))
+        symptoms = list(dict.fromkeys(patient["symptoms"] or patient["reasons"]))
 
-            priority = self._priority(patient["severities"], match["red_flag_hits"])
-            confidence = min(98, 68 + (match["score"] * 8) + (8 if priority == "Critical" else 0))
-            symptoms = list(dict.fromkeys(patient["symptoms"] or patient["reasons"]))
+        return {
+            "assignment_id": assignment_id,
+            "patient_id": patient["patient_id"],
+            "patient_name": patient["patient_name"],
+            "phone": patient["phone"],
+            "symptoms": symptoms,
+            "severity": priority,
+            "specialty": match["specialty"],
+            "doctor_id": doctor["id"] if doctor else None,
+            "doctor_name": doctor["name"] if doctor else "No registered doctor available",
+            "doctor_unit": doctor["unit"] if doctor else match["specialty"],
+            "doctor_shift": doctor["shift"] if doctor else "Unassigned",
+            "confidence": confidence,
+            "status": "Assigned" if doctor else "Unassigned",
+            "reason": self._reason(match, priority),
+            "recommended_action": (
+                patient["recommended_actions"][0]
+                if patient["recommended_actions"]
+                else "Review triage details and contact the patient if symptoms are escalating."
+            ),
+            "alert_ids": [alert_id for alert_id in patient["alert_ids"] if alert_id],
+            "reports": patient["reports"],
+            "created_at": patient["created_at"],
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
-            assignment = {
-                "assignment_id": assignment_id,
-                "patient_id": patient["patient_id"],
-                "patient_name": patient["patient_name"],
-                "phone": patient["phone"],
-                "symptoms": symptoms,
-                "severity": priority,
-                "specialty": match["specialty"],
-                "doctor_id": doctor["id"] if doctor else None,
-                "doctor_name": doctor["name"] if doctor else "No registered doctor available",
-                "doctor_unit": doctor["unit"] if doctor else match["specialty"],
-                "doctor_shift": doctor["shift"] if doctor else "Unassigned",
-                "confidence": confidence,
-                "status": saved_assignment.get("status", "Assigned" if doctor else "Unassigned"),
-                "reason": self._reason(match, priority),
-                "recommended_action": (
-                    patient["recommended_actions"][0]
-                    if patient["recommended_actions"]
-                    else "Review triage details and contact the patient if symptoms are escalating."
-                ),
-                "alert_ids": [alert_id for alert_id in patient["alert_ids"] if alert_id],
-                "reports": patient["reports"],
-                "created_at": patient["created_at"],
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-            }
-            assignments.append(assignment)
-            self._save_assignment(assignment)
-
-        assignments.sort(
+    def _sort_assignments(self, assignments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return sorted(
+            assignments,
             key=lambda item: (
                 {"Critical": 0, "Urgent": 1, "Routine": 2}.get(item["severity"], 3),
                 item.get("created_at") or "",
             )
         )
 
-        return {
+    def _response(
+        self,
+        assignments: list[dict[str, Any]],
+        doctors: list[dict[str, Any]],
+        synced_count: int | None = None,
+    ) -> dict[str, Any]:
+        response = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "assignments": assignments,
+            "assignments": self._sort_assignments(assignments),
             "doctors": self.doctor_capacity(assignments, doctors),
             "summary": self.summary(assignments),
             "rules": SPECIALTY_RULES,
         }
+
+        if synced_count is not None:
+            response["synced_count"] = synced_count
+
+        return response
+
+    def list_assignments(self) -> dict[str, Any]:
+        alerts = alert_service.list_active_alerts()
+        patients = self._group_alerts_by_patient(alerts)
+        saved = self._saved_assignments()
+        doctors = self._registered_doctors()
+        active_assignment_ids = {
+            f"route-{patient['patient_id']}"
+            for patient in patients
+        }
+
+        assignments = [
+            assignment
+            for assignment_id, assignment in saved.items()
+            if assignment_id in active_assignment_ids
+        ]
+
+        return self._response(assignments, doctors)
+
+    def sync_assignments(self) -> dict[str, Any]:
+        alerts = alert_service.list_active_alerts()
+        patients = self._group_alerts_by_patient(alerts)
+        saved = self._saved_assignments()
+        doctors = self._registered_doctors()
+        assignable_doctors = self._assignable_doctors(doctors)
+        doctor_load: dict[str, int] = {doctor["id"]: 0 for doctor in assignable_doctors}
+        assignments: list[dict[str, Any]] = []
+        synced_count = 0
+
+        for assignment in saved.values():
+            if assignment.get("doctor_id") and assignment.get("status") != "Closed":
+                doctor_load[assignment["doctor_id"]] = doctor_load.get(assignment["doctor_id"], 0) + 1
+
+        for patient in patients:
+            assignment_id = f"route-{patient['patient_id']}"
+            saved_assignment = saved.get(assignment_id)
+
+            if saved_assignment:
+                assignments.append(saved_assignment)
+                continue
+
+            assignment = self._build_assignment(patient, assignable_doctors, doctor_load)
+            assignments.append(assignment)
+            self._save_assignment(assignment)
+            synced_count += 1
+
+        return self._response(assignments, doctors, synced_count)
+
+    def sync_alert_assignment(self, alert: dict[str, Any]) -> dict[str, Any] | None:
+        patients = self._group_alerts_by_patient([alert])
+
+        if not patients:
+            return None
+
+        patient = patients[0]
+        assignment_id = f"route-{patient['patient_id']}"
+        saved = self._saved_assignments()
+
+        if assignment_id in saved:
+            return saved[assignment_id]
+
+        doctors = self._registered_doctors()
+        assignable_doctors = self._assignable_doctors(doctors)
+        doctor_load: dict[str, int] = {doctor["id"]: 0 for doctor in assignable_doctors}
+
+        for assignment in saved.values():
+            if assignment.get("doctor_id") and assignment.get("status") != "Closed":
+                doctor_load[assignment["doctor_id"]] = doctor_load.get(assignment["doctor_id"], 0) + 1
+
+        assignment = self._build_assignment(patient, assignable_doctors, doctor_load)
+        self._save_assignment(assignment)
+
+        return assignment
 
     def _reason(self, match: dict[str, Any], priority: str) -> str:
         evidence = match["red_flag_hits"] or match["keyword_hits"]

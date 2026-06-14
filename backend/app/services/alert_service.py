@@ -75,6 +75,14 @@ class AlertService:
             json.dumps(alert),
         )
 
+    def _sync_routing_assignment(self, alert: dict[str, Any]) -> None:
+        try:
+            from app.services.routing_service import routing_service
+
+            routing_service.sync_alert_assignment(alert)
+        except Exception as exc:
+            print(f"ROUTING SYNC FAILED: {exc}")
+
     def create_alert(
         self,
         user_id: str,
@@ -105,6 +113,7 @@ class AlertService:
         }
 
         self._save_alert(alert)
+        self._sync_routing_assignment(alert)
 
         return alert
 

@@ -16,7 +16,8 @@ export default function UploadReport() {
   const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const patientId = user?.patientId || "whatsapp:+919999000001";
+  const patientId = user?.patientId;
+  const missingPatientId = !patientId;
 
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
@@ -29,13 +30,18 @@ export default function UploadReport() {
   const handleUpload = async () => {
     if (!uploadedFile) return;
 
+    if (missingPatientId) {
+      setUploadError("Your patient session is missing a patient ID. Please log out and sign in again.");
+      return;
+    }
+
     setIsUploading(true);
     setUploadError("");
 
     try {
       await uploadPatientReport({
         patientId,
-        patientName: user?.name || "Aarav Patient",
+        patientName: user?.name || "Patient",
         file: uploadedFile,
       });
       setUploadStatus("Report uploaded and sent to the doctor dashboard.");
@@ -80,9 +86,15 @@ export default function UploadReport() {
               Drag & Drop Report
             </h2>
 
-            <p className="text-slate-400 mb-8">
+          <p className="text-slate-400 mb-8">
               PDF, JPG, PNG supported
             </p>
+
+            {missingPatientId && (
+              <div className="mb-6 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+                Your patient session is missing a patient ID. Please log out and sign in again.
+              </div>
+            )}
 
             <label className="cursor-pointer">
 
@@ -90,9 +102,10 @@ export default function UploadReport() {
                 type="file"
                 className="hidden"
                 onChange={handleFileChange}
+                disabled={missingPatientId}
               />
 
-              <div className="bg-gradient-to-r from-blue-500 to-cyan-400 px-8 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 transition-all">
+              <div className={`bg-gradient-to-r from-blue-500 to-cyan-400 px-8 py-4 rounded-2xl font-bold shadow-xl transition-all ${missingPatientId ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}>
                 Choose File
               </div>
 
@@ -140,8 +153,8 @@ export default function UploadReport() {
 
     <button
       onClick={handleUpload}
-      disabled={isUploading}
-      className="mt-6 bg-gradient-to-r from-blue-500 to-cyan-400 px-6 py-3 rounded-2xl font-semibold hover:scale-105 transition-all"
+      disabled={isUploading || missingPatientId}
+      className={`mt-6 bg-gradient-to-r from-blue-500 to-cyan-400 px-6 py-3 rounded-2xl font-semibold transition-all ${isUploading || missingPatientId ? "cursor-not-allowed opacity-50" : "hover:scale-105"}`}
     >
       {isUploading ? "Uploading..." : "Upload to Doctor Dashboard"}
     </button>

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Clock3, Download, FileText } from "lucide-react";
 import PageShell from "../components/layout/PageShell";
 import { useLiveAlerts } from "../hooks/useLiveAlerts";
-import { fetchPatientReports } from "../services/api";
+import { fetchPatientReports, openReportFile } from "../services/api";
 
 export default function Reports() {
   const { id } = useParams();
@@ -29,6 +29,16 @@ export default function Reports() {
       : null
   );
   const visibleReports = reportPatient?.reports || [];
+
+  const handleOpenReport = async (report) => {
+    setReportError("");
+
+    try {
+      await openReportFile(report);
+    } catch (err) {
+      setReportError(err.message || "Unable to open report");
+    }
+  };
 
   useEffect(() => {
     if (!decodedId) return;
@@ -128,9 +138,9 @@ export default function Reports() {
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Previewing</p>
                   <p className="mt-3 text-2xl font-semibold text-white">{selectedReport?.name || "No report selected"}</p>
                   <p className="mt-2 text-sm text-slate-300">
-                    {selectedReport?.url
-                      ? "Open or download the attached media URL from the report list."
-                      : "No report media URL is attached to this active alert yet."}
+                    {selectedReport?.reportId
+                      ? "Open the attached file through the secure report endpoint."
+                      : "No secure report file is attached to this active alert yet."}
                   </p>
                 </div>
                 <div className="rounded-3xl bg-white/10 p-4 text-sm text-slate-200">
@@ -140,6 +150,12 @@ export default function Reports() {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-4">
+              {reportError && (
+                <div className="basis-full rounded-3xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700">
+                  {reportError}
+                </div>
+              )}
+
               <button
                 onClick={() => setZoomLevel((current) => Number((current + 0.1).toFixed(1)))}
                 className="rounded-3xl bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
@@ -152,15 +168,14 @@ export default function Reports() {
               >
                 Zoom Out
               </button>
-              {selectedReport?.url && (
-                <a
-                  href={selectedReport.url}
-                  target="_blank"
-                  rel="noreferrer"
+              {selectedReport?.reportId && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenReport(selectedReport)}
                   className="inline-flex items-center gap-2 rounded-3xl bg-cyan-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
                 >
                   <Download size={16} /> Open Source
-                </a>
+                </button>
               )}
             </div>
           </div>

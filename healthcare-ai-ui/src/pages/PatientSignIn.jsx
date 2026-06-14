@@ -7,7 +7,7 @@ export default function PatientSignIn() {
   const navigate = useNavigate();
   const { signup, verifyOtp } = useAuth();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("+919999000001");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -34,11 +34,7 @@ export default function PatientSignIn() {
     }
 
     setVerificationStarted(true);
-    setOtpMessage(
-      result.otp?.sent
-        ? "OTP sent to your registered phone."
-        : `Dev OTP: ${result.otp?.dev_otp}`
-    );
+    setOtpMessage("OTP sent to your registered phone.");
   };
 
   const handleVerifyOtp = async () => {
@@ -91,7 +87,7 @@ export default function PatientSignIn() {
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
               disabled={verificationStarted}
-              placeholder="+919999000001"
+              placeholder="Phone number with country code"
               className="w-full bg-transparent text-white outline-none placeholder:text-slate-500"
             />
           </div>

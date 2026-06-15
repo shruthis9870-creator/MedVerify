@@ -4,6 +4,10 @@
   "outputDirectory": "healthcare-ai-ui/dist",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://medverify-backend.onrender.com/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

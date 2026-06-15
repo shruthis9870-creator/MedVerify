@@ -1,4 +1,4 @@
-const DEFAULT_PRODUCTION_API_BASE_URL = "https://medverify-backend.onrender.com";
+const DEFAULT_PRODUCTION_API_BASE_URL = "/api";
 const LOCAL_API_BASE_URL = "http://localhost:8000";
 
 function resolveApiBaseUrl() {
@@ -239,7 +239,7 @@ async function request(path, options = {}) {
       ...fetchOptions,
     });
   } catch {
-    throw new Error(`Unable to reach MedVerify backend at ${API_BASE_URL}.`);
+    throw new Error("Unable to reach MedVerify backend. Please try again.");
   }
 
   if (!response.ok) {
@@ -274,7 +274,7 @@ async function requestBlob(path, options = {}) {
       ...fetchOptions,
     });
   } catch {
-    throw new Error(`Unable to reach MedVerify backend at ${API_BASE_URL}.`);
+    throw new Error("Unable to reach MedVerify backend. Please try again.");
   }
 
   if (!response.ok) {

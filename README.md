@@ -95,7 +95,8 @@ VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
 ```
 
 Redeploy Vercel after setting this variable. If it is not set, production builds
-use the default Render blueprint URL:
+use the Vercel `/api` proxy, which forwards API requests to the default Render
+blueprint URL:
 
 ```env
 https://medverify-backend.onrender.com

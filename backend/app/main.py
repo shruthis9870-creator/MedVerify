@@ -81,6 +81,7 @@ def _static_file_for(path: str) -> Path | None:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins(),
+    allow_origin_regex=settings.cors_allowed_origin_regex,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

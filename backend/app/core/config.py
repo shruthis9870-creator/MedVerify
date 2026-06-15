@@ -36,6 +36,7 @@ class Settings(BaseSettings):
         "http://localhost:3000,"
         "http://127.0.0.1:3000"
     )
+    cors_allowed_origin_regex: str | None = r"https://.*\.vercel\.app"
     easyocr_model_dir: str = str(BACKEND_ROOT / ".easyocr")
     allow_dev_otp: bool = False
     admin_allowed_emails: str = ""

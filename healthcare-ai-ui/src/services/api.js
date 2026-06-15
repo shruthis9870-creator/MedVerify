@@ -1,4 +1,21 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const DEFAULT_PRODUCTION_API_BASE_URL = "https://medverify-backend.onrender.com";
+const LOCAL_API_BASE_URL = "http://localhost:8000";
+
+function resolveApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/+$/, "");
+  }
+
+  if (import.meta.env.PROD) {
+    return DEFAULT_PRODUCTION_API_BASE_URL;
+  }
+
+  return LOCAL_API_BASE_URL;
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 const TOKEN_KEY = "medverify_token";
 
 const severityMap = {
@@ -214,10 +231,16 @@ async function request(path, options = {}) {
     ...(token && !headers.Authorization ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: requestHeaders,
-    ...fetchOptions,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: requestHeaders,
+      ...fetchOptions,
+    });
+  } catch {
+    throw new Error(`Unable to reach MedVerify backend at ${API_BASE_URL}.`);
+  }
 
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
@@ -243,10 +266,16 @@ async function requestBlob(path, options = {}) {
     ...(token && !headers.Authorization ? { Authorization: `Bearer ${token}` } : {}),
   };
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: requestHeaders,
-    ...fetchOptions,
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: requestHeaders,
+      ...fetchOptions,
+    });
+  } catch {
+    throw new Error(`Unable to reach MedVerify backend at ${API_BASE_URL}.`);
+  }
 
   if (!response.ok) {
     let message = `Request failed (${response.status})`;

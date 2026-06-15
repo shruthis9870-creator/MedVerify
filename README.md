@@ -94,6 +94,11 @@ In Vercel project settings, add:
 VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
 ```
 
-Redeploy Vercel after setting this variable. Without `VITE_API_BASE_URL`, the
-deployed frontend falls back to `http://localhost:8000`, which works locally but
-fails from phones and public browsers.
+Redeploy Vercel after setting this variable. If it is not set, production builds
+use the default Render blueprint URL:
+
+```env
+https://medverify-backend.onrender.com
+```
+
+Use the Vercel setting whenever your Render service URL is different.

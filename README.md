@@ -88,18 +88,23 @@ Render injects `REDIS_URL` from the Redis service automatically through
 
 ### 2. Connect Vercel Frontend To Backend
 
-In Vercel project settings, add:
+The frontend calls `/api/*` in production. Vercel proxies those requests to the
+Render backend through `vercel.json`:
 
-```env
-VITE_API_BASE_URL=https://your-render-backend-url.onrender.com
+```json
+{
+  "source": "/api/(.*)",
+  "destination": "https://medverify-backend.onrender.com/$1"
+}
 ```
 
-Redeploy Vercel after setting this variable. If it is not set, production builds
-use the Vercel `/api` proxy, which forwards API requests to the default Render
-blueprint URL:
+If your Render service URL is different, update the destination in
+`vercel.json` and redeploy Vercel. Do not set `VITE_API_BASE_URL` in Vercel for
+production; it is only useful for local frontend testing against a non-default
+backend.
+
+For local testing you can add:
 
 ```env
-https://medverify-backend.onrender.com
+VITE_API_BASE_URL=http://localhost:8000
 ```
-
-Use the Vercel setting whenever your Render service URL is different.

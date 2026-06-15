@@ -93,8 +93,8 @@ Render backend through `vercel.json`:
 
 ```json
 {
-  "source": "/api/(.*)",
-  "destination": "https://medverify-backend.onrender.com/$1"
+  "source": "/api/:path*",
+  "destination": "https://medverify-backend.onrender.com/:path*"
 }
 ```
 

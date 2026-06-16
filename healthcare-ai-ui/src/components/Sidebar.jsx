@@ -19,7 +19,7 @@ export default function Sidebar() {
       <div className="mb-12">
 
   <h1 className="text-3xl font-bold tracking-wide">
-    MediAssist
+    MedVerify
   </h1>
 
   <p className="text-gray-400 text-sm mt-2">

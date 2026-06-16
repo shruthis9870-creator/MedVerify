@@ -45,7 +45,11 @@ export default function DoctorLogin() {
       return;
     }
 
-    setOtpMessage("OTP sent to your registered phone.");
+    setOtpMessage(
+      result.dev_otp
+        ? `Local testing OTP: ${result.dev_otp}`
+        : "OTP sent to your registered phone."
+    );
   };
 
   const handleVerifyOtp = async () => {

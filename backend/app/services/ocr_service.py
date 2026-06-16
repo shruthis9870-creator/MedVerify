@@ -6,8 +6,11 @@ Extracts text from medical images and analyzes symptoms
 import os
 import re
 import base64
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from io import BytesIO
+
+from app.core.config import settings
 
 # Try to import EasyOCR (fallback if not installed)
 try:
@@ -17,17 +20,34 @@ try:
     EASYOCR_AVAILABLE = True
 except ImportError:
     EASYOCR_AVAILABLE = False
-    print("EasyOCR not available. Using mock OCR.")
+    print("EasyOCR dependencies are not available. OCR extraction is disabled.")
 
 class OCRService:
     """OCR Service for extracting text from medical documents"""
     
     def __init__(self):
         self.reader = None
+        self.initialization_error = ""
         if EASYOCR_AVAILABLE:
-            print("Loading EasyOCR model...")
-            self.reader = easyocr.Reader(['en'], gpu=False)
-            print("EasyOCR loaded successfully!")
+            try:
+                model_dir = Path(settings.easyocr_model_dir)
+                user_network_dir = model_dir / "user_network"
+                model_dir.mkdir(parents=True, exist_ok=True)
+                user_network_dir.mkdir(parents=True, exist_ok=True)
+                os.environ.setdefault("EASYOCR_MODULE_PATH", str(model_dir))
+                print(f"Loading EasyOCR model from {model_dir}...")
+                self.reader = easyocr.Reader(
+                    ['en'],
+                    gpu=False,
+                    model_storage_directory=str(model_dir),
+                    user_network_directory=str(user_network_dir),
+                    verbose=False,
+                )
+                print("EasyOCR loaded successfully!")
+            except Exception as exc:
+                self.initialization_error = str(exc)
+                self.reader = None
+                print(f"EasyOCR failed to initialize: {exc}")
     
     def extract_text_from_image(self, image_bytes: bytes) -> Dict[str, Any]:
         """
@@ -57,7 +77,7 @@ class OCRService:
                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                 
                 if img is None:
-                    return self._mock_extraction("Could not decode image")
+                    return self._error_result("Could not decode image")
                 
                 results = self.reader.readtext(img)
                 texts = [text for bbox, text, conf in results]
@@ -67,15 +87,22 @@ class OCRService:
                 return self._format_result(full_text, len(texts), avg_conf)
                 
             except Exception as e:
-                return self._mock_extraction(f"OCR error: {str(e)}")
+                return self._error_result(f"OCR error: {str(e)}")
         
-        # Fallback to mock OCR
-        return self._mock_extraction("")
+        return self._error_result(
+            self.initialization_error
+            or "EasyOCR is not installed or failed to load. Install backend OCR dependencies before processing images."
+        )
     
-    def _mock_extraction(self, error_msg: str = "") -> Dict[str, Any]:
-        """Mock OCR for testing when EasyOCR not available"""
-        mock_text = "Patient: John Doe. Diagnosis: Fever and cough. Prescribed: Paracetamol 500mg twice daily."
-        return self._format_result(mock_text, 12, 0.85, error_msg)
+    def _error_result(self, error_msg: str) -> Dict[str, Any]:
+        """Return a clear OCR failure instead of medical-looking fake text."""
+        return {
+            "extracted_text": "",
+            "word_count": 0,
+            "confidence": 0,
+            "contains_emergency_keywords": False,
+            "error": error_msg,
+        }
     
     def _format_result(self, text: str, word_count: int, confidence: float, error: str = "") -> Dict[str, Any]:
         emergency_keywords = [
@@ -146,7 +173,7 @@ class TriageService:
                 "reason": f"Reported: {', '.join(medium_symptoms)}",
                 "recommendation": "🏥 Consult a physician within 24-48 hours. Monitor symptoms closely.",
                 "symptoms_analyzed": symptoms,
-                "timestamp": time.strftime("%Y-%4m-%dT%H:%M:%SZ", time.gmtime())
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             }
         
         # LOW severity

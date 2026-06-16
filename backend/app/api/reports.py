@@ -152,11 +152,29 @@ async def upload_patient_report(
             "uploaded_by_role": current_user.get("role"),
         },
     )
+
+    alert = alert_service.create_alert(
+        user_id=patient_id,
+        severity="MEDIUM",
+        reason="Patient uploaded a medical report for clinical review",
+        payload={
+            "source": "patient_report_upload",
+            "patient_name": patient_name or current_user.get("name"),
+            "uploaded_by": current_user.get("userId"),
+            "uploaded_by_role": current_user.get("role"),
+            "report_id": report_id,
+            "report_raw": safe_name,
+            "main_symptom": "Medical report uploaded",
+            "requires_doctor_review": True,
+            "recommended_action": "Review the uploaded report and follow up with the patient.",
+        },
+    )
     attached_alerts = alert_service.attach_patient_reports_to_open_alerts(patient_id)
 
     return {
         "ok": True,
         "report": report,
+        "alert": alert,
         "attached_alerts": attached_alerts,
     }
 

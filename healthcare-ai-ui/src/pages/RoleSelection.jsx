@@ -18,7 +18,7 @@ export default function RoleSelection() {
         {/* Heading */}
 
         <h1 className="text-6xl font-bold text-white text-center mb-4">
-          Welcome to MediAssist
+          Welcome to MedVerify
         </h1>
 
         <p className="text-center text-slate-400 text-lg max-w-2xl mx-auto mb-16">

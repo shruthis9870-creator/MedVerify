@@ -206,7 +206,7 @@ export default function UploadReport() {
           </div>
 
           <p className="text-slate-300 leading-relaxed">
-            Once uploaded, MediAssist AI analyzes the report,
+            Once uploaded, MedVerify AI analyzes the report,
             identifies abnormalities, prioritizes severity,
             and assists healthcare professionals with treatment routing.
           </p>

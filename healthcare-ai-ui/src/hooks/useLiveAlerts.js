@@ -1,18 +1,23 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { acknowledgeAlert, alertsToPatients, fetchActiveAlerts } from "../services/api";
+import { acknowledgeAlert, alertsToPatients, fetchActiveAlerts, fetchRegisteredPatients } from "../services/api";
 
 const LiveAlertsContext = createContext(null);
 
 function useLiveAlertsState(pollInterval = 5000) {
   const [alerts, setAlerts] = useState([]);
+  const [registeredPatients, setRegisteredPatients] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const refresh = useCallback(async () => {
     try {
-      const activeAlerts = await fetchActiveAlerts();
+      const [activeAlerts, backendPatients] = await Promise.all([
+        fetchActiveAlerts(),
+        fetchRegisteredPatients(),
+      ]);
       setAlerts(activeAlerts);
+      setRegisteredPatients(backendPatients);
       setError("");
       setLastUpdated(new Date());
     } catch (err) {
@@ -30,7 +35,23 @@ function useLiveAlertsState(pollInterval = 5000) {
     return () => window.clearInterval(intervalId);
   }, [pollInterval, refresh]);
 
-  const patients = useMemo(() => alertsToPatients(alerts), [alerts]);
+  const alertPatients = useMemo(() => alertsToPatients(alerts), [alerts]);
+  const patients = useMemo(() => {
+    const byPatient = new Map();
+
+    registeredPatients.forEach((patient) => {
+      byPatient.set(patient.id, patient);
+    });
+
+    alertPatients.forEach((patient) => {
+      byPatient.set(patient.id, {
+        ...byPatient.get(patient.id),
+        ...patient,
+      });
+    });
+
+    return Array.from(byPatient.values());
+  }, [alertPatients, registeredPatients]);
   const reportPatients = useMemo(
     () => patients.filter((patient) => patient.reports?.length > 0),
     [patients]

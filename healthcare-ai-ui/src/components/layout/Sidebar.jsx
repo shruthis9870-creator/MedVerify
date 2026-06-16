@@ -24,11 +24,12 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useLiveAlerts } from "../../hooks/useLiveAlerts";
 import { useAuth } from "../../context/AuthContext";
+import { displaySpecialty, displayUserName } from "../../utils/profile";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { alerts, activePatients, reportPatients } = useLiveAlerts(7000);
   const pendingReports = reportPatients.length;
 
@@ -191,7 +192,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     {!collapsed && (
       <div>
         <h1 className="text-3xl font-bold">
-          MediAssist
+          MedVerify
         </h1>
 
         <p className="text-blue-200 text-xs">
@@ -290,11 +291,11 @@ export default function Sidebar({ collapsed, onToggle }) {
     {!collapsed && (
       <div>
         <p className="font-semibold">
-          Dr. Sharma
+          {displayUserName(user)}
         </p>
 
         <p className="text-xs text-slate-400">
-          Cardiologist
+          {displaySpecialty(user)}
         </p>
       </div>
     )}

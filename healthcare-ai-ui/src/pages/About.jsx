@@ -41,7 +41,7 @@ export default function About() {
 
   return (
     <PageShell
-      title="About MediAssist"
+      title="About MedVerify"
       subtitle="An AI-powered healthcare platform designed for intelligent patient care and emergency response."
       status="Healthcare AI Platform"
     >
@@ -58,7 +58,7 @@ export default function About() {
             </h1>
 
             <p className="mt-6 text-lg text-cyan-100 leading-relaxed">
-              MediAssist combines AI-powered diagnosis, emergency response,
+              MedVerify combines AI-powered diagnosis, emergency response,
               smart hospital routing, and real-time patient monitoring
               into one intelligent healthcare ecosystem.
             </p>
@@ -91,7 +91,7 @@ export default function About() {
             </h2>
 
             <p className="mt-5 text-slate-600 leading-relaxed">
-              MediAssist aims to reduce emergency response times,
+              MedVerify aims to reduce emergency response times,
               improve patient outcomes, and support medical professionals
               with powerful AI-driven recommendations and analytics.
             </p>

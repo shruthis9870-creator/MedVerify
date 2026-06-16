@@ -14,7 +14,7 @@ export default function LandingPage() {
 
       <nav className="flex items-center justify-between px-10 py-6">
         <h1 className="text-3xl font-bold text-cyan-400">
-          MediAssist
+          MedVerify
         </h1>
 
         <Link to="/signin">
@@ -43,7 +43,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="mt-8 max-w-2xl text-xl leading-relaxed text-gray-300">
-            MediAssist uses artificial intelligence to analyze symptoms,
+            MedVerify uses artificial intelligence to analyze symptoms,
             prioritize emergencies, route patients to nearby specialists,
             and assist healthcare professionals in real time.
           </p>

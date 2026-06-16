@@ -6,7 +6,9 @@ __pycache__/
 .env
 
 .redis-data/
+.redis-bin/
 backend/uploads/
+backend/.easyocr/
 
 healthcare-ai-ui/node_modules/
 healthcare-ai-ui/dist/

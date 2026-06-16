@@ -71,6 +71,7 @@ def _build_real_redis_client() -> Redis:
         return Redis.from_url(
             settings.redis_url,
             decode_responses=True,
+            protocol=2,
             socket_connect_timeout=1,
             socket_timeout=1,
         )
@@ -80,6 +81,7 @@ def _build_real_redis_client() -> Redis:
         port=settings.redis_port,
         db=settings.redis_db,
         decode_responses=True,
+        protocol=2,
         socket_connect_timeout=1,
         socket_timeout=1,
     )

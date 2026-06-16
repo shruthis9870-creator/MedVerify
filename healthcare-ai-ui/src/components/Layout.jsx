@@ -7,6 +7,8 @@ import {
 } from "lucide-react"
 
 import Sidebar from "./Sidebar"
+import { useAuth } from "../context/AuthContext"
+import { displaySpecialty, displayUserName } from "../utils/profile"
 
 export default function Layout({
   children,
@@ -15,6 +17,7 @@ export default function Layout({
   console.log("Layout Dark Mode:", darkMode);
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const { user } = useAuth()
 
   return (
 
@@ -143,11 +146,11 @@ export default function Layout({
               <div>
 
                 <p className="font-semibold text-sm">
-                  Dr. Sharma
+                  {displayUserName(user)}
                 </p>
 
                 <p className="text-gray-500 text-xs">
-                  Cardiologist
+                  {displaySpecialty(user)}
                 </p>
 
               </div>

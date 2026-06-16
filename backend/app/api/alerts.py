@@ -1,39 +1,60 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from datetime import datetime
+from typing import List, Optional
+import uuid
 
-from app.core.security import require_roles
-from app.services.alert_service import alert_service
+router = APIRouter()
 
-router = APIRouter(
-    prefix="/alerts",
-    tags=["alerts"],
-    dependencies=[Depends(require_roles("doctor", "admin"))],
-)
+# In-memory storage for alerts (replace with database later)
+alerts_db = []
 
+class AlertCreate(BaseModel):
+    patient_id: str
+    severity: str
+    reason: str
+    source: Optional[str] = "manual"
+    recommendation: Optional[str] = None
+    patient_name: Optional[str] = None
 
-@router.get("/active")
-def get_active_alerts():
-    alerts = alert_service.list_active_alerts()
+class AlertResponse(BaseModel):
+    alert_id: str
+    patient_id: str
+    patient_name: Optional[str] = None
+    severity: str
+    reason: str
+    source: str
+    recommendation: Optional[str] = None
+    status: str
+    created_at: str
 
-    return {
-        "alerts": alerts,
-        "count": len(alerts),
-        "emergency_patients": alert_service.count_emergency_alerts(),
-        "ai_clinical_cases": alert_service.count_ai_clinical_cases(),
-        "active_patients": alert_service.count_active_patients(),
-    }
+@router.get("/alerts", response_model=List[AlertResponse])
+async def get_alerts():
+    """Get all alerts"""
+    return alerts_db
 
+@router.post("/alerts", response_model=AlertResponse)
+async def create_alert(alert: AlertCreate):
+    """Create a new alert"""
+    new_alert = AlertResponse(
+        alert_id=f"alert_{uuid.uuid4().hex[:8]}",
+        patient_id=alert.patient_id,
+        patient_name=alert.patient_name,
+        severity=alert.severity,
+        reason=alert.reason,
+        source=alert.source,
+        recommendation=alert.recommendation or alert.reason,
+        status="open",
+        created_at=datetime.utcnow().isoformat()
+    )
+    alerts_db.append(new_alert)
+    return new_alert
 
-@router.post("/{alert_id}/ack")
-def acknowledge_alert(alert_id: str):
-    alert = alert_service.acknowledge_alert(alert_id)
-
-    if alert is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Alert not found",
-        )
-
-    return {
-        "ok": True,
-        "alert": alert,
-    }
+@router.patch("/alerts/{alert_id}")
+async def update_alert(alert_id: str, status: str):
+    """Update alert status"""
+    for alert in alerts_db:
+        if alert.alert_id == alert_id:
+            alert.status = status
+            return {"message": "Alert updated", "alert_id": alert_id, "status": status}
+    raise HTTPException(status_code=404, detail="Alert not found")

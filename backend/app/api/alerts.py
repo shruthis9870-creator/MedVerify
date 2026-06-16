@@ -58,3 +58,17 @@ async def update_alert(alert_id: str, status: str):
             alert.status = status
             return {"message": "Alert updated", "alert_id": alert_id, "status": status}
     raise HTTPException(status_code=404, detail="Alert not found")
+# Add demo alert if no alerts exist
+if not alerts_db:
+    alerts_db.append(AlertResponse(
+        alert_id="alert_demo_001",
+        patient_id="+919876543210",
+        patient_name="Demo Patient",
+        severity="HIGH",
+        reason="Chest pain detected (demo - send 'chest pain' to WhatsApp for real alerts)",
+        source="whatsapp_symptom",
+        recommendation="Seek immediate medical attention",
+        status="open",
+        created_at=datetime.utcnow().isoformat()
+    ))
+    print("✅ Demo alert added!")
